@@ -1,0 +1,1626 @@
+{
+  "zabbix_export": {
+    "version": "6.0",
+    "date": "2026-10-07T12:00:00Z",
+    "groups": [
+      {
+        "uuid": "e8b63fa9df294d63ba889ea1ae31d0b8",
+        "name": "Templates/Applications"
+      }
+    ],
+    "templates": [
+      {
+        "uuid": "7f87b8ff063342ad971af85cd92b7db3",
+        "template": "Pactua CRM by HTTP",
+        "name": "Pactua CRM by HTTP",
+        "description": "Pactua CRM (VM 10.0.0.74): lê /metrics.php (formato Prometheus) com token, sem agente na VM. Vincular a um host (ex.: \"Pactua CRM\") e preencher a macro {$CRM.TOKEN} no host. Fonte: docs/integracoes/zabbix no repositório do CRM.",
+        "groups": [
+          {
+            "name": "Templates/Applications"
+          }
+        ],
+        "items": [
+          {
+            "uuid": "48334ead82fa4c759472e1b289aaad49",
+            "name": "CRM: coleta do /metrics.php",
+            "type": "HTTP_AGENT",
+            "key": "crm.metricas.get",
+            "delay": "1m",
+            "history": "0",
+            "trends": "0",
+            "value_type": "TEXT",
+            "timeout": "15s",
+            "url": "{$CRM.URL}",
+            "headers": [
+              {
+                "name": "Authorization",
+                "value": "Bearer {$CRM.TOKEN}"
+              }
+            ],
+            "description": "Item mestre: baixa todas as métricas do CRM (formato Prometheus) a cada minuto. Os outros itens são separados daqui.",
+            "tags": [
+              {
+                "tag": "component",
+                "value": "raw"
+              }
+            ]
+          },
+          {
+            "uuid": "fad0f74554aa415f9510f4d1acf801c5",
+            "name": "CRM: hora da última coleta na VM",
+            "type": "DEPENDENT",
+            "key": "crm.coletor.execucao",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_coletor_execucao_timestamp_segundos do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_coletor_execucao_timestamp_segundos",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "coletor"
+              }
+            ],
+            "units": "unixtime",
+            "triggers": [
+              {
+                "uuid": "d77403a5b2f9409bbacca651785f49c5",
+                "expression": "nodata(/Pactua CRM by HTTP/crm.coletor.execucao,3m)=1",
+                "name": "CRM fora do ar (sem resposta do /metrics.php há 3 min)",
+                "priority": "DISASTER",
+                "description": "A VM 10.0.0.74, o Apache/PHP ou a rede não respondem, ou o token foi recusado (401). Ver o erro do item \"CRM: coleta do /metrics.php\".",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "77f6133c1bee49efa0ce23213ca09fb0",
+            "name": "CRM: idade das métricas",
+            "type": "DEPENDENT",
+            "key": "crm.metricas.idade",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_metricas_idade_segundos do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_metricas_idade_segundos",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "coletor"
+              }
+            ],
+            "units": "s",
+            "triggers": [
+              {
+                "uuid": "9339611ae0ca44e4bb1949ac7b9d9f6f",
+                "expression": "min(/Pactua CRM by HTTP/crm.metricas.idade,5m)>{$CRM.COLETOR.IDADE.MAX}",
+                "name": "CRM: coletor de métricas parado na VM",
+                "priority": "HIGH",
+                "description": "O cron do scripts/exportar-metricas.sh parou. Os outros alertas ficam cegos.",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "2e8636d4afdb4870bad6256e560289c2",
+            "name": "CRM: duração da coleta",
+            "type": "DEPENDENT",
+            "key": "crm.coletor.duracao",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_coletor_duracao_segundos do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_coletor_duracao_segundos",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "coletor"
+              }
+            ],
+            "units": "s"
+          },
+          {
+            "uuid": "7db482e34a0c461b87bd8021b64615d8",
+            "name": "CDC: conector Debezium",
+            "type": "DEPENDENT",
+            "key": "crm.debezium.conector",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_debezium_conector_rodando do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_debezium_conector_rodando",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "cdc"
+              }
+            ],
+            "valuemap": {
+              "name": "CRM rodando"
+            }
+          },
+          {
+            "uuid": "b05f8fa776b948478951a4ab16f918e5",
+            "name": "CDC: task do Debezium",
+            "type": "DEPENDENT",
+            "key": "crm.debezium.task",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_debezium_task_rodando do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_debezium_task_rodando",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "cdc"
+              }
+            ],
+            "valuemap": {
+              "name": "CRM rodando"
+            }
+          },
+          {
+            "uuid": "ba07b0e807fa4633a06b17354bfbcda2",
+            "name": "CDC: idade do último evento lido do MySQL",
+            "type": "DEPENDENT",
+            "key": "crm.debezium.offset.idade",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_debezium_offset_timestamp_segundos do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_debezium_offset_timestamp_segundos",
+                  "value",
+                  ""
+                ]
+              },
+              {
+                "type": "JAVASCRIPT",
+                "parameters": [
+                  "return Math.floor(Date.now() / 1000) - Number(value);"
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "cdc"
+              }
+            ],
+            "units": "s"
+          },
+          {
+            "uuid": "8e7c36a7152d4ffe8780d1b3519e7b78",
+            "name": "CDC: mensagens ainda não projetadas",
+            "type": "DEPENDENT",
+            "key": "crm.cdc.lag",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_cdc_lag_mensagens do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_cdc_lag_mensagens",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "cdc"
+              }
+            ],
+            "triggers": [
+              {
+                "uuid": "5fa0d3f681e541ed956601b3fa0e08cf",
+                "expression": "min(/Pactua CRM by HTTP/crm.cdc.lag,1h)>{$CRM.CDC.LAG.MAX} and last(/Pactua CRM by HTTP/crm.cdc.lag)>=first(/Pactua CRM by HTTP/crm.cdc.lag,1h)",
+                "name": "CDC: fila com mais de {$CRM.CDC.LAG.MAX} mensagens e não diminui há 1h",
+                "priority": "AVERAGE",
+                "description": "Worker do CDC travado? OpenSearch e dashboards atrasados.",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "cadd3e98de76424ab5358eaace90de55",
+            "name": "OpenSearch: status",
+            "type": "DEPENDENT",
+            "key": "crm.opensearch.status",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_opensearch_status do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_opensearch_status",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "opensearch"
+              }
+            ],
+            "valuemap": {
+              "name": "CRM OpenSearch status"
+            },
+            "triggers": [
+              {
+                "uuid": "2f66cd776dc249f4a6b012753b223b29",
+                "expression": "max(/Pactua CRM by HTTP/crm.opensearch.status,15m)<2",
+                "name": "OpenSearch amarelo/vermelho há 15 min",
+                "priority": "AVERAGE",
+                "description": "Busca e dashboards do CRM podem falhar.",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "8b6b77e1da244a11a56981957bb96e48",
+            "name": "OpenSearch: contratos indexados",
+            "type": "DEPENDENT",
+            "key": "crm.opensearch.contratos",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_opensearch_documentos{indice=\"crm_contratos_v1\"} do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_opensearch_documentos{indice=\"crm_contratos_v1\"}",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "opensearch"
+              }
+            ]
+          },
+          {
+            "uuid": "5a1a63cd19a04595ba9b3a2f99ce3c5f",
+            "name": "MySQL: respondendo",
+            "type": "DEPENDENT",
+            "key": "crm.mysql.rodando",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_mysql_rodando do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_mysql_rodando",
+                  "value",
+                  ""
+                ],
+                "error_handler": "CUSTOM_VALUE",
+                "error_handler_params": "0"
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "mysql"
+              }
+            ],
+            "valuemap": {
+              "name": "CRM rodando"
+            }
+          },
+          {
+            "uuid": "037fdf8140fe46b18dc503c295f66101",
+            "name": "MySQL: conexões abertas",
+            "type": "DEPENDENT",
+            "key": "crm.mysql.conexoes",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_mysql_conexoes do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_mysql_conexoes",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "mysql"
+              }
+            ]
+          },
+          {
+            "uuid": "ff189852911546589ed7ff8d3fdf3d4d",
+            "name": "MySQL: memória RAM",
+            "type": "DEPENDENT",
+            "key": "crm.mysql.rss",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_mysql_memoria_rss_bytes do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_mysql_memoria_rss_bytes",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "mysql"
+              }
+            ],
+            "units": "B"
+          },
+          {
+            "uuid": "abe3d11cfcaf4a9ba40bbc1addb1af8f",
+            "name": "MySQL: memória em swap",
+            "type": "DEPENDENT",
+            "key": "crm.mysql.swap",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_mysql_swap_bytes do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_mysql_swap_bytes",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "mysql"
+              }
+            ],
+            "units": "B",
+            "triggers": [
+              {
+                "uuid": "b00b15fab4204b4ab30af8dfb38f70d0",
+                "expression": "min(/Pactua CRM by HTTP/crm.mysql.swap,30m)>{$CRM.MYSQL.SWAP.MAX}",
+                "name": "MySQL com mais de {$CRM.MYSQL.SWAP.MAX} em swap há 30 min",
+                "priority": "WARNING",
+                "description": "MySQL lento. Paliativo: reiniciar o MySQL fora do expediente e depois a task do Debezium.",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "19a5dfa0d11d4fc180fddb8168dd7c39",
+            "name": "MySQL: contratos",
+            "type": "DEPENDENT",
+            "key": "crm.mysql.contratos",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_mysql_registros{entidade=\"contratos\"} do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_mysql_registros{entidade=\"contratos\"}",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "mysql"
+              }
+            ]
+          },
+          {
+            "uuid": "6d5f9c6d80fb4e3b98e8b2aea4073a48",
+            "name": "MySQL: pessoas",
+            "type": "DEPENDENT",
+            "key": "crm.mysql.pessoas",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_mysql_registros{entidade=\"pessoas\"} do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_mysql_registros{entidade=\"pessoas\"}",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "mysql"
+              }
+            ]
+          },
+          {
+            "uuid": "7876ed5827754b288890d4ee114cbbe8",
+            "name": "MySQL: acordos",
+            "type": "DEPENDENT",
+            "key": "crm.mysql.acordos",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_mysql_registros{entidade=\"acordos\"} do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_mysql_registros{entidade=\"acordos\"}",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "mysql"
+              }
+            ]
+          },
+          {
+            "uuid": "8fc03a7aae4a4f37a79bfafad3990618",
+            "name": "VM: uso do disco",
+            "type": "DEPENDENT",
+            "key": "crm.host.disco",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_host_disco_uso_percentual do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_host_disco_uso_percentual",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "vm"
+              }
+            ],
+            "units": "%",
+            "triggers": [
+              {
+                "uuid": "e0e59b852f59418c9c70474ca523dd55",
+                "expression": "min(/Pactua CRM by HTTP/crm.host.disco,10m)>{$CRM.DISCO.MAX}",
+                "name": "VM: disco acima de {$CRM.DISCO.MAX}%",
+                "priority": "HIGH",
+                "description": "Disco da VM do CRM enchendo (binlog, backups, staging).",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "0bfc1b53bdaa422383e16ffb9416ad7f",
+            "name": "VM: memória disponível",
+            "type": "DEPENDENT",
+            "key": "crm.host.memoria",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_host_memoria_disponivel_bytes do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_host_memoria_disponivel_bytes",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "vm"
+              }
+            ],
+            "units": "B"
+          },
+          {
+            "uuid": "988c2abd7a864456a0d5a17f17d299c8",
+            "name": "VM: swap usado",
+            "type": "DEPENDENT",
+            "key": "crm.host.swap",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_host_swap_usado_bytes do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_host_swap_usado_bytes",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "vm"
+              }
+            ],
+            "units": "B"
+          },
+          {
+            "uuid": "7567923f6efc43cbb4528d03c73dad6f",
+            "name": "VM: carga (load 1 min)",
+            "type": "DEPENDENT",
+            "key": "crm.host.load1",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_host_load1 do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_host_load1",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "vm"
+              }
+            ]
+          },
+          {
+            "uuid": "8c0ce8b09e8e4a18b5f5f91169cc8f6d",
+            "name": "Backup: idade do último backup do MySQL",
+            "type": "DEPENDENT",
+            "key": "crm.backup.idade",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_backup_ultimo_timestamp_segundos do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_backup_ultimo_timestamp_segundos",
+                  "value",
+                  ""
+                ]
+              },
+              {
+                "type": "JAVASCRIPT",
+                "parameters": [
+                  "return Math.floor(Date.now() / 1000) - Number(value);"
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "backup"
+              }
+            ],
+            "units": "s",
+            "triggers": [
+              {
+                "uuid": "a8c7ef1281794a2c9723252df5cb134e",
+                "expression": "min(/Pactua CRM by HTTP/crm.backup.idade,10m)>{$CRM.BACKUP.ATRASO.MAX}",
+                "name": "Backup do MySQL atrasado (mais de {$CRM.BACKUP.ATRASO.MAX})",
+                "priority": "HIGH",
+                "description": "O backup diário das 03:30 não rodou. Ver /var/log/backup-mysql.log na VM.",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "f486fd1b9d424b668a6feabdf51663ea",
+            "name": "Backup: tamanho do último",
+            "type": "DEPENDENT",
+            "key": "crm.backup.tamanho",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_backup_ultimo_tamanho_bytes do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_backup_ultimo_tamanho_bytes",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "backup"
+              }
+            ],
+            "units": "B"
+          },
+          {
+            "uuid": "4880a7f930a24479ac88311bf30a9cd0",
+            "name": "Carga ACME: idade da última carga aplicada",
+            "type": "DEPENDENT",
+            "key": "crm.carga.idade",
+            "delay": "0",
+            "value_type": "FLOAT",
+            "description": "Métrica crm_carga_ultima_aplicada_timestamp_segundos do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_carga_ultima_aplicada_timestamp_segundos",
+                  "value",
+                  ""
+                ]
+              },
+              {
+                "type": "JAVASCRIPT",
+                "parameters": [
+                  "return Math.floor(Date.now() / 1000) - Number(value);"
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "carga"
+              }
+            ],
+            "units": "s",
+            "triggers": [
+              {
+                "uuid": "5df2c23af64d4e80a971ec0272322293",
+                "expression": "min(/Pactua CRM by HTTP/crm.carga.idade,15m)>{$CRM.CARGA.ATRASO.MAX} and dayofweek()<>7 and time()>=090000",
+                "name": "Carga diária da ACME não aplicada (seg-sáb, depois das 9h)",
+                "priority": "HIGH",
+                "description": "A carga diária da ACME (06h) não foi aplicada. Usa o fuso do servidor Zabbix (deve ser horário de Brasília).",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "74d38d463cb34d17b47e557b903698b4",
+            "name": "Operação: acionamentos hoje",
+            "type": "DEPENDENT",
+            "key": "crm.acionamentos.hoje",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_acionamentos_hoje do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_acionamentos_hoje",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "operacao"
+              }
+            ]
+          },
+          {
+            "uuid": "61d84ccda705446dad47ba833668723e",
+            "name": "Operação: acordos criados hoje",
+            "type": "DEPENDENT",
+            "key": "crm.acordos.hoje",
+            "delay": "0",
+            "value_type": "UNSIGNED",
+            "description": "Métrica crm_acordos_criados_hoje do /metrics.php.",
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_PATTERN",
+                "parameters": [
+                  "crm_acordos_criados_hoje",
+                  "value",
+                  ""
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "tags": [
+              {
+                "tag": "component",
+                "value": "operacao"
+              }
+            ]
+          },
+          {
+            "uuid": "73f39c5ba2a44930aab1c5887b455a56",
+            "name": "OpenSearch: diferença de contratos para o MySQL",
+            "type": "CALCULATED",
+            "key": "crm.opensearch.diferenca",
+            "delay": "1m",
+            "value_type": "FLOAT",
+            "params": "abs(last(//crm.mysql.contratos)-last(//crm.opensearch.contratos))",
+            "description": "Contratos no MySQL menos contratos no índice do OpenSearch (0 = sincronizado).",
+            "tags": [
+              {
+                "tag": "component",
+                "value": "opensearch"
+              }
+            ],
+            "triggers": [
+              {
+                "uuid": "351a1903dc064c729154d79acbdc10ec",
+                "expression": "min(/Pactua CRM by HTTP/crm.opensearch.diferenca,2h)>{$CRM.OPENSEARCH.DIFERENCA.MAX}",
+                "name": "OpenSearch desincronizado do MySQL há 2h (mais de {$CRM.OPENSEARCH.DIFERENCA.MAX} contratos)",
+                "priority": "AVERAGE",
+                "description": "O CDC não está levando as mudanças do MySQL para o OpenSearch.",
+                "tags": [
+                  {
+                    "tag": "scope",
+                    "value": "availability"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "discovery_rules": [
+          {
+            "uuid": "628819b19f724f30b7620639ebf827a1",
+            "name": "Containers do CRM",
+            "type": "DEPENDENT",
+            "key": "crm.containers.descoberta",
+            "delay": "0",
+            "lifetime": "7d",
+            "description": "",
+            "item_prototypes": [
+              {
+                "uuid": "bb9196cfc2f74419a3a4fc18d70f84c8",
+                "name": "Container {#CONTAINER}: rodando",
+                "type": "DEPENDENT",
+                "key": "crm.container.rodando[{#CONTAINER}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_container_rodando{container=\"{#CONTAINER}\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_container_rodando{container=\"{#CONTAINER}\"}",
+                      "value",
+                      ""
+                    ]
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "containers"
+                  }
+                ],
+                "valuemap": {
+                  "name": "CRM rodando"
+                },
+                "trigger_prototypes": [
+                  {
+                    "uuid": "3e46a42e6fb5490fa9bba63e628b52c4",
+                    "expression": "max(/Pactua CRM by HTTP/crm.container.rodando[{#CONTAINER}],5m)=0",
+                    "name": "Container {#CONTAINER} parado há 5 min",
+                    "priority": "HIGH",
+                    "description": "Container do CRM parado na VM 10.0.0.74.",
+                    "tags": [
+                      {
+                        "tag": "scope",
+                        "value": "availability"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "uuid": "e99f7db1390049dbbdae2382b5759947",
+                "name": "Container {#CONTAINER}: reinícios",
+                "type": "DEPENDENT",
+                "key": "crm.container.reinicios[{#CONTAINER}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_container_reinicios{container=\"{#CONTAINER}\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_container_reinicios{container=\"{#CONTAINER}\"}",
+                      "value",
+                      ""
+                    ]
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "containers"
+                  }
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_TO_JSON",
+                "parameters": [
+                  "crm_container_rodando"
+                ]
+              }
+            ],
+            "lld_macro_paths": [
+              {
+                "lld_macro": "{#CONTAINER}",
+                "path": "$.labels.container"
+              }
+            ]
+          },
+          {
+            "uuid": "542c5bcd798e40fcafb13475301b6788",
+            "name": "Containers do CRM com healthcheck",
+            "type": "DEPENDENT",
+            "key": "crm.containers.saude.descoberta",
+            "delay": "0",
+            "lifetime": "7d",
+            "description": "",
+            "item_prototypes": [
+              {
+                "uuid": "47183aa5b85d4c0db544e0f9256bac23",
+                "name": "Container {#CONTAINER}: saudável",
+                "type": "DEPENDENT",
+                "key": "crm.container.saudavel[{#CONTAINER}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_container_saudavel{container=\"{#CONTAINER}\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_container_saudavel{container=\"{#CONTAINER}\"}",
+                      "value",
+                      ""
+                    ]
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "containers"
+                  }
+                ],
+                "valuemap": {
+                  "name": "CRM saudável"
+                },
+                "trigger_prototypes": [
+                  {
+                    "uuid": "01efb7f2934045ab9c735e503b1d29c7",
+                    "expression": "max(/Pactua CRM by HTTP/crm.container.saudavel[{#CONTAINER}],10m)=0",
+                    "name": "Container {#CONTAINER} com healthcheck falhando há 10 min",
+                    "priority": "AVERAGE",
+                    "description": "O container está de pé mas não responde direito.",
+                    "tags": [
+                      {
+                        "tag": "scope",
+                        "value": "availability"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_TO_JSON",
+                "parameters": [
+                  "crm_container_saudavel"
+                ]
+              }
+            ],
+            "lld_macro_paths": [
+              {
+                "lld_macro": "{#CONTAINER}",
+                "path": "$.labels.container"
+              }
+            ]
+          },
+          {
+            "uuid": "a9365a19ce9642b88bd16c81d53d5343",
+            "name": "Integrações com credores (fila de saída)",
+            "type": "DEPENDENT",
+            "key": "crm.integracoes.descoberta",
+            "delay": "0",
+            "lifetime": "7d",
+            "description": "",
+            "item_prototypes": [
+              {
+                "uuid": "80477382c3734f23829d19eb1cab6dbb",
+                "name": "Integração {#INTEGRACAO}: eventos com erro definitivo",
+                "type": "DEPENDENT",
+                "key": "crm.integracao.erro_definitivo[{#INTEGRACAO}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_integracao_eventos{integracao=\"{#INTEGRACAO}\",status=\"erro_definitivo\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_integracao_eventos{integracao=\"{#INTEGRACAO}\",status=\"erro_definitivo\"}",
+                      "function",
+                      "sum"
+                    ],
+                    "error_handler": "CUSTOM_VALUE",
+                    "error_handler_params": "0"
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "integracoes"
+                  }
+                ],
+                "trigger_prototypes": [
+                  {
+                    "uuid": "187f177b92e44151915425a13489548f",
+                    "expression": "min(/Pactua CRM by HTTP/crm.integracao.erro_definitivo[{#INTEGRACAO}],5m)>0",
+                    "name": "Integração {#INTEGRACAO}: evento com erro definitivo",
+                    "priority": "HIGH",
+                    "description": "Um envio para o credor desistiu depois de todas as tentativas. Ver Configurações > Integrações no CRM.",
+                    "tags": [
+                      {
+                        "tag": "scope",
+                        "value": "availability"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "uuid": "155a95b035a74a1ea511006a93e67428",
+                "name": "Integração {#INTEGRACAO}: eventos aguardando envio",
+                "type": "DEPENDENT",
+                "key": "crm.integracao.fila[{#INTEGRACAO}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_integracao_eventos{integracao=\"{#INTEGRACAO}\",status=~\"pendente|erro_retry\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_integracao_eventos{integracao=\"{#INTEGRACAO}\",status=~\"pendente|erro_retry\"}",
+                      "function",
+                      "sum"
+                    ],
+                    "error_handler": "CUSTOM_VALUE",
+                    "error_handler_params": "0"
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "integracoes"
+                  }
+                ],
+                "trigger_prototypes": [
+                  {
+                    "uuid": "949575a3718040bb92098ff9db8bee96",
+                    "expression": "min(/Pactua CRM by HTTP/crm.integracao.fila[{#INTEGRACAO}],30m)>{$CRM.INTEGRACAO.FILA.MAX}",
+                    "name": "Integração {#INTEGRACAO}: fila acumulando há 30 min (mais de {$CRM.INTEGRACAO.FILA.MAX})",
+                    "priority": "AVERAGE",
+                    "description": "O credor não está aceitando os envios ou o worker de integração parou.",
+                    "tags": [
+                      {
+                        "tag": "scope",
+                        "value": "availability"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "uuid": "da6c1534b8c2444f8b20681020df2663",
+                "name": "Integração {#INTEGRACAO}: eventos enviados (total)",
+                "type": "DEPENDENT",
+                "key": "crm.integracao.enviados[{#INTEGRACAO}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_integracao_eventos{integracao=\"{#INTEGRACAO}\",status=\"enviado\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_integracao_eventos{integracao=\"{#INTEGRACAO}\",status=\"enviado\"}",
+                      "function",
+                      "sum"
+                    ],
+                    "error_handler": "CUSTOM_VALUE",
+                    "error_handler_params": "0"
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "integracoes"
+                  }
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_TO_JSON",
+                "parameters": [
+                  "crm_integracao_eventos"
+                ]
+              },
+              {
+                "type": "JAVASCRIPT",
+                "parameters": [
+                  "var vistos = {}, saida = [];\nJSON.parse(value).forEach(function (linha) {\n    var v = linha.labels[\"integracao\"];\n    if (v !== undefined && !vistos[v]) { vistos[v] = true; var o = {}; o[\"{#INTEGRACAO}\"] = v; saida.push(o); }\n});\nreturn JSON.stringify(saida);"
+                ]
+              }
+            ]
+          },
+          {
+            "uuid": "2bf061723b5d46e6a6c03a0a2f0f07e0",
+            "name": "Rotinas agendadas (cron) da VM",
+            "type": "DEPENDENT",
+            "key": "crm.rotinas.descoberta",
+            "delay": "0",
+            "lifetime": "7d",
+            "description": "",
+            "item_prototypes": [
+              {
+                "uuid": "424227c16ac5447b9805067c8f860810",
+                "name": "Rotina {#ROTINA}: tempo desde a última execução",
+                "type": "DEPENDENT",
+                "key": "crm.rotina.idade[{#ROTINA}]",
+                "delay": "0",
+                "value_type": "FLOAT",
+                "description": "Métrica crm_rotina_ultimo_log_timestamp_segundos{rotina=\"{#ROTINA}\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_rotina_ultimo_log_timestamp_segundos{rotina=\"{#ROTINA}\"}",
+                      "value",
+                      ""
+                    ]
+                  },
+                  {
+                    "type": "JAVASCRIPT",
+                    "parameters": [
+                      "return Math.floor(Date.now() / 1000) - Number(value);"
+                    ]
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "rotinas"
+                  }
+                ],
+                "units": "s",
+                "trigger_prototypes": [
+                  {
+                    "uuid": "cc5a21f55f724cf3a05e76c83f33f870",
+                    "expression": "{$CRM.ROTINA.ATRASO.MAX:\"{#ROTINA}\"}>0 and min(/Pactua CRM by HTTP/crm.rotina.idade[{#ROTINA}],10m)>{$CRM.ROTINA.ATRASO.MAX:\"{#ROTINA}\"}",
+                    "name": "Rotina {#ROTINA} parada (sem rodar há mais de {$CRM.ROTINA.ATRASO.MAX:\"{#ROTINA}\"})",
+                    "priority": "AVERAGE",
+                    "description": "Cron da VM parado para esta rotina. Só vigia as rotinas com macro {$CRM.ROTINA.ATRASO.MAX:\"nome\"} maior que 0.",
+                    "tags": [
+                      {
+                        "tag": "scope",
+                        "value": "availability"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_TO_JSON",
+                "parameters": [
+                  "crm_rotina_ultimo_log_timestamp_segundos"
+                ]
+              }
+            ],
+            "lld_macro_paths": [
+              {
+                "lld_macro": "{#ROTINA}",
+                "path": "$.labels.rotina"
+              }
+            ]
+          },
+          {
+            "uuid": "e66d50f76c17429f9503b3c4868e52db",
+            "name": "Partes da coleta na VM",
+            "type": "DEPENDENT",
+            "key": "crm.coletor.blocos.descoberta",
+            "delay": "0",
+            "lifetime": "7d",
+            "description": "",
+            "item_prototypes": [
+              {
+                "uuid": "602f9300926442f2a778e664815baa55",
+                "name": "Coleta {#BLOCO}: funcionando",
+                "type": "DEPENDENT",
+                "key": "crm.coletor.bloco[{#BLOCO}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_coletor_bloco_ok{bloco=\"{#BLOCO}\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_coletor_bloco_ok{bloco=\"{#BLOCO}\"}",
+                      "value",
+                      ""
+                    ]
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "coletor"
+                  }
+                ],
+                "valuemap": {
+                  "name": "CRM ok"
+                },
+                "trigger_prototypes": [
+                  {
+                    "uuid": "ea5919bc349b43b4b2d00fb931357c7f",
+                    "expression": "max(/Pactua CRM by HTTP/crm.coletor.bloco[{#BLOCO}],10m)=0",
+                    "name": "CRM: parte \"{#BLOCO}\" da coleta falhando há 10 min",
+                    "priority": "WARNING",
+                    "description": "O coletor da VM não conseguiu ler esta parte (as métricas dela ficam velhas). Ver storage/logs/exportar-metricas.log.",
+                    "tags": [
+                      {
+                        "tag": "scope",
+                        "value": "availability"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_TO_JSON",
+                "parameters": [
+                  "crm_coletor_bloco_ok"
+                ]
+              }
+            ],
+            "lld_macro_paths": [
+              {
+                "lld_macro": "{#BLOCO}",
+                "path": "$.labels.bloco"
+              }
+            ]
+          },
+          {
+            "uuid": "fe672086741d4ba7a40013cab1bcd99f",
+            "name": "Índices do OpenSearch",
+            "type": "DEPENDENT",
+            "key": "crm.opensearch.indices.descoberta",
+            "delay": "0",
+            "lifetime": "7d",
+            "description": "",
+            "item_prototypes": [
+              {
+                "uuid": "7e19d60b51fe4272bbfa253876fad4bb",
+                "name": "OpenSearch {#INDICE}: documentos",
+                "type": "DEPENDENT",
+                "key": "crm.opensearch.documentos[{#INDICE}]",
+                "delay": "0",
+                "value_type": "UNSIGNED",
+                "description": "Métrica crm_opensearch_documentos{indice=\"{#INDICE}\"} do /metrics.php.",
+                "preprocessing": [
+                  {
+                    "type": "PROMETHEUS_PATTERN",
+                    "parameters": [
+                      "crm_opensearch_documentos{indice=\"{#INDICE}\"}",
+                      "value",
+                      ""
+                    ]
+                  }
+                ],
+                "master_item": {
+                  "key": "crm.metricas.get"
+                },
+                "tags": [
+                  {
+                    "tag": "component",
+                    "value": "opensearch"
+                  }
+                ]
+              }
+            ],
+            "master_item": {
+              "key": "crm.metricas.get"
+            },
+            "preprocessing": [
+              {
+                "type": "PROMETHEUS_TO_JSON",
+                "parameters": [
+                  "crm_opensearch_documentos"
+                ]
+              }
+            ],
+            "lld_macro_paths": [
+              {
+                "lld_macro": "{#INDICE}",
+                "path": "$.labels.indice"
+              }
+            ]
+          }
+        ],
+        "tags": [
+          {
+            "tag": "class",
+            "value": "application"
+          },
+          {
+            "tag": "target",
+            "value": "works-crm"
+          }
+        ],
+        "macros": [
+          {
+            "macro": "{$CRM.URL}",
+            "value": "https://crm.exemplo.com.br/metrics.php",
+            "description": "Endereço das métricas (ou http://10.0.0.74:8080/metrics.php direto)."
+          },
+          {
+            "macro": "{$CRM.TOKEN}",
+            "value": "",
+            "description": "Token (conteúdo de /opt/crm-dev-docker/storage/metrics/token na VM). Preencher no host.",
+            "type": "SECRET_TEXT"
+          },
+          {
+            "macro": "{$CRM.COLETOR.IDADE.MAX}",
+            "value": "300",
+            "description": "Segundos sem coleta nova na VM para alertar."
+          },
+          {
+            "macro": "{$CRM.CDC.LAG.MAX}",
+            "value": "50000",
+            "description": "Mensagens do CDC na fila."
+          },
+          {
+            "macro": "{$CRM.DISCO.MAX}",
+            "value": "85",
+            "description": "Uso do disco da VM (%)."
+          },
+          {
+            "macro": "{$CRM.MYSQL.SWAP.MAX}",
+            "value": "800M",
+            "description": "Memória do MySQL em swap."
+          },
+          {
+            "macro": "{$CRM.BACKUP.ATRASO.MAX}",
+            "value": "26h",
+            "description": "Tempo máximo desde o último backup do MySQL."
+          },
+          {
+            "macro": "{$CRM.CARGA.ATRASO.MAX}",
+            "value": "30h",
+            "description": "Tempo máximo desde a última carga da ACME aplicada."
+          },
+          {
+            "macro": "{$CRM.OPENSEARCH.DIFERENCA.MAX}",
+            "value": "100",
+            "description": "Contratos de diferença entre MySQL e OpenSearch."
+          },
+          {
+            "macro": "{$CRM.INTEGRACAO.FILA.MAX}",
+            "value": "20",
+            "description": "Eventos aguardando envio para o credor."
+          },
+          {
+            "macro": "{$CRM.ROTINA.ATRASO.MAX}",
+            "value": "0",
+            "description": "Rotinas sem contexto não são vigiadas (0)."
+          },
+          {
+            "macro": "{$CRM.ROTINA.ATRASO.MAX:\"executar-rotinas-carga\"}",
+            "value": "1h",
+            "description": "Roda a cada 5 min."
+          },
+          {
+            "macro": "{$CRM.ROTINA.ATRASO.MAX:\"purge-binlog-seguro\"}",
+            "value": "1h",
+            "description": "Roda a cada 15 min."
+          },
+          {
+            "macro": "{$CRM.ROTINA.ATRASO.MAX:\"verificar-disco\"}",
+            "value": "1h",
+            "description": "Roda periodicamente."
+          }
+        ],
+        "valuemaps": [
+          {
+            "uuid": "8ccf2a2f67024d36bf6e141bfeedb175",
+            "name": "CRM rodando",
+            "mappings": [
+              {
+                "value": "0",
+                "newvalue": "parado"
+              },
+              {
+                "value": "1",
+                "newvalue": "rodando"
+              }
+            ]
+          },
+          {
+            "uuid": "87d99f9733044b2393e5d2b93f0f0fec",
+            "name": "CRM saudável",
+            "mappings": [
+              {
+                "value": "0",
+                "newvalue": "falhando"
+              },
+              {
+                "value": "1",
+                "newvalue": "saudável"
+              }
+            ]
+          },
+          {
+            "uuid": "6d515cbeb13342cf9b4a050b59cf3653",
+            "name": "CRM ok",
+            "mappings": [
+              {
+                "value": "0",
+                "newvalue": "falha"
+              },
+              {
+                "value": "1",
+                "newvalue": "ok"
+              }
+            ]
+          },
+          {
+            "uuid": "c6a8ea7290e24a6ba554091ba6fb998d",
+            "name": "CRM OpenSearch status",
+            "mappings": [
+              {
+                "value": "0",
+                "newvalue": "vermelho"
+              },
+              {
+                "value": "1",
+                "newvalue": "amarelo"
+              },
+              {
+                "value": "2",
+                "newvalue": "verde"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

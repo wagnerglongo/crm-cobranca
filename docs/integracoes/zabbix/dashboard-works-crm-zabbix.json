@@ -1,0 +1,1855 @@
+{
+  "title": "Pactua CRM",
+  "uid": "works-crm-zabbix",
+  "description": "Pactua CRM (VM 10.0.0.74) pelo Zabbix (template \"Pactua CRM by HTTP\"). Fonte: docs/integracoes/zabbix no repositório do CRM.",
+  "tags": [
+    "crm",
+    "works",
+    "zabbix"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "1m",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "editable": true,
+  "templating": {
+    "list": [
+      {
+        "name": "ds",
+        "label": "Zabbix",
+        "type": "datasource",
+        "query": "alexanderzobnin-zabbix-datasource",
+        "current": {},
+        "hide": 0,
+        "refresh": 1,
+        "options": []
+      },
+      {
+        "name": "host",
+        "label": "Host",
+        "type": "textbox",
+        "query": "Pactua CRM",
+        "current": {
+          "text": "Pactua CRM",
+          "value": "Pactua CRM"
+        },
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "CRM no ar (idade das métricas)",
+      "description": "Segundos desde a última coleta na VM. Sem dado = CRM fora do ar.",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "CRM: idade das métricas"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 180
+              },
+              {
+                "color": "red",
+                "value": 300
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "CDC: fila",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "CDC: mensagens ainda não projetadas"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10000
+              },
+              {
+                "color": "red",
+                "value": 50000
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "OpenSearch",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "OpenSearch: status"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 2
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "vermelho",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "amarelo",
+                  "color": "orange",
+                  "index": 1
+                },
+                "2": {
+                  "text": "verde",
+                  "color": "green",
+                  "index": 2
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Disco da VM",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "VM: uso do disco"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Último backup",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Backup: idade do último backup do MySQL"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 90000
+              },
+              {
+                "color": "red",
+                "value": 93600
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Última carga ACME",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Carga ACME: idade da última carga aplicada"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100800
+              },
+              {
+                "color": "red",
+                "value": 108000
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Acionamentos hoje",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Operação: acionamentos hoje"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Acordos criados hoje",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 4,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Operação: acordos criados hoje"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Debezium (CDC)",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "CDC: task do Debezium"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "parado",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "rodando",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "MySQL em swap",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "MySQL: memória em swap"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 524288000
+              },
+              {
+                "color": "red",
+                "value": 838860800
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Contratos MySQL x OpenSearch",
+      "description": "0 = sincronizado.",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 4,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "OpenSearch: diferença de contratos para o MySQL"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Erros definitivos no envio ao credor",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 4,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Integração .*: eventos com erro definitivo$/"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Containers",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 4
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Container .*: rodando$/"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "parado",
+                  "color": "red",
+                  "index": 0
+                },
+                "1": {
+                  "text": "rodando",
+                  "color": "green",
+                  "index": 1
+                }
+              }
+            }
+          ],
+          "color": {
+            "mode": "thresholds"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "auto",
+        "orientation": "vertical"
+      }
+    },
+    {
+      "id": 20,
+      "type": "alexanderzobnin-zabbix-triggers-panel",
+      "title": "Alertas ativos",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 7
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "5",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "functions": [],
+          "options": {
+            "minSeverity": 0,
+            "acknowledged": 2,
+            "sortProblems": "default",
+            "showDisabledItems": false,
+            "hostsInMaintenance": false,
+            "limit": 100
+          }
+        }
+      ],
+      "options": {
+        "layout": "table",
+        "showTags": true,
+        "hostField": true,
+        "severityField": true,
+        "ageField": true,
+        "pageSize": 10
+      }
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "CDC: mensagens na fila",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "CDC: mensagens ainda não projetadas"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Envio para credores: aguardando",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 19,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/^Integração .*: eventos aguardando envio$/"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "type": "timeseries",
+      "title": "MySQL: memória",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 27,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "MySQL: memória RAM"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "MySQL: memória em swap"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "timeseries",
+      "title": "VM: memória livre e swap",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 27,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "VM: memória disponível"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "VM: swap usado"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "timeseries",
+      "title": "VM: disco e carga",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 35,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "VM: uso do disco"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "VM: carga (load 1 min)"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "type": "timeseries",
+      "title": "Operação do dia",
+      "description": "",
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "${ds}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 35,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Operação: acionamentos hoje"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "${ds}"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/.*/"
+          },
+          "host": {
+            "filter": "$host"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Operação: acordos criados hoje"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    }
+  ]
+}

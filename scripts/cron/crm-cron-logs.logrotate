@@ -1,0 +1,20 @@
+/var/log/atualizar-carteira-acordos.log
+/var/log/purge-binlog-seguro.log
+/var/log/executar-rotinas-carga.log
+/var/log/verificar-disco.log
+/var/log/backup-mysql.log
+/var/log/verificar-saude-cdc.log
+/var/log/limpar-staging-antigo.log
+/var/log/exportar-metricas.log
+/var/log/homologacao-agendador.log
+{
+    su root root
+    weekly
+    rotate 8
+    maxsize 50M
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

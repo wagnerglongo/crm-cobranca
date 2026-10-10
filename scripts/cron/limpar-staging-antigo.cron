@@ -1,0 +1,7 @@
+# Purga diaria (04:15, horario local) do RAW/staging (cargas_linhas_raw,
+# stg_carga_canonica) de cargas ja CONCLUIDAS com mais de 7 dias - achado
+# 2026-09-22: essas 2 tabelas cresciam sem limite (~1,7GB/dia so' da ACME,
+# 93% do tamanho do banco em 6 dias). So' toca em dado ja aplicado e antigo,
+# nunca em dado canonico nem em staging ainda pendente de aplicacao.
+# Falha dispara alerta por email. Instalado 2026-09-22.
+15 4 * * * root cd /opt/crm-dev-docker && docker compose exec -T php php console/limpar_staging_antigo.php >> /var/log/limpar-staging-antigo.log 2>&1 || docker compose exec -T php php console/alertar_falha_cron.php "[CRM] limpar_staging_antigo falhou" "A limpeza diaria de staging antigo (cron 04:15) falhou. Ver /var/log/limpar-staging-antigo.log." >/dev/null 2>&1

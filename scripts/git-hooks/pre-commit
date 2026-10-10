@@ -1,0 +1,34 @@
+#!/bin/bash
+# Roda a suite de testes do CRM antes de cada commit local. Nao existe CI
+# na nuvem (sem remoto git configurado ainda - 2026-09-17), essa e' a
+# unica rede de seguranca automatica que existe hoje contra regressao.
+#
+# Versionado (nao fica so em .git/hooks/, que nao e' rastreado) pra
+# sobreviver a um clone/checkout novo. Ativar com:
+#   git config core.hooksPath scripts/git-hooks
+set -euo pipefail
+
+# Testa o codigo da copia onde o commit esta sendo feito: producao
+# (/opt/crm-dev-docker -> container crm_php) ou homologacao (git worktree
+# -> container crm_php_homolog, scripts/homologacao.sh). 2026-10-06.
+TOPO="$(git rev-parse --show-toplevel)"
+cd "$TOPO"
+if [ "$TOPO" = "/opt/crm-dev-docker" ]; then CONTAINER=crm_php; else CONTAINER=crm_php_homolog; fi
+if docker info >/dev/null 2>&1; then dk() { docker "$@"; }; else dk() { sg docker -c "docker $(printf '%q ' "$@")"; }; fi
+
+# Banco proprio da suite (crm_test) - recria so se mudou migration.
+if ! scripts/preparar-banco-teste.sh; then
+    echo "[pre-commit] Nao consegui preparar o banco crm_test - commit abortado."
+    exit 1
+fi
+
+echo "[pre-commit] Rodando suite de testes PHPUnit..."
+echo "[pre-commit] Codigo: $TOPO (container $CONTAINER)"
+if ! dk exec "$CONTAINER" vendor/bin/phpunit; then
+    echo ""
+    echo "[pre-commit] Testes falharam - commit abortado."
+    echo "[pre-commit] Use 'git commit --no-verify' pra pular (nao recomendado)."
+    exit 1
+fi
+
+echo "[pre-commit] OK - testes passaram."

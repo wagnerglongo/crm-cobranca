@@ -1,0 +1,8 @@
+# Roda a reconciliacao de carteira de acordos (marca parcelas vencidas,
+# aplica carencia, quebra acordos, quita acordos pagos) a cada 15 min.
+# Antes disso, a UNICA coisa que rodava essa reconciliacao era a propria
+# tela de Acordos (public/operacao/acordos.php), de forma SINCRONA em todo
+# carregamento de pagina - removido em 2026-09-16 (auditoria de
+# performance) porque duplicava exatamente este job e dois supervisores
+# abrindo a tela ao mesmo tempo competiam pelas mesmas linhas.
+*/15 * * * * root cd /opt/crm-dev-docker && docker compose exec -T php php console/atualizar_carteira_acordos.php >> /var/log/atualizar-carteira-acordos.log 2>&1

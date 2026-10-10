@@ -1,0 +1,20 @@
+{
+  "name": "crm-mysql-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "debezium",
+    "database.password": "debezium_dev_secret",
+    "database.server.id": "184054",
+    "topic.prefix": "crm.mysql",
+    "database.include.list": "crm_dev",
+    "schema.history.internal.kafka.bootstrap.servers": "redpanda:9092",
+    "schema.history.internal.kafka.topic": "schema-changes.crm_dev",
+    "include.schema.changes": "false",
+    "snapshot.mode": "initial",
+    "decimal.handling.mode": "string",
+    "time.precision.mode": "connect",
+    "tombstones.on.delete": "false"
+  }
+}

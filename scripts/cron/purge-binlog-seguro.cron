@@ -1,0 +1,5 @@
+# Purga binlogs ja replicados pelo Debezium a cada 15 min, evitando que
+# cargas grandes (snapshots diários) encham o disco da VM antes do
+# binlog_expire_logs_seconds (que age por tempo, nao por espaco) entrar em acao.
+# Instalado por: incidente de disco cheio de 2026-09-15.
+*/15 * * * * root /opt/crm-dev-docker/scripts/purge-binlog-seguro.sh >> /var/log/purge-binlog-seguro.log 2>&1

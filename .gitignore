@@ -1,0 +1,32 @@
+# Dependencias locais
+/vendor/
+/app/vendor/
+/node_modules/
+
+# Ambiente e segredos
+.env
+.env.local
+.env.*.secret
+app/.env.local
+
+# Runtime e dados locais
+*.log
+storage/cargas/*
+storage/anexos/*
+storage/cache/*
+# token e metricas do Grafana (scripts/exportar-metricas.sh) - nunca versionar
+storage/metrics/
+storage/logs/*
+storage/runtime/*
+storage/integracoes/*
+!storage/cargas/.gitkeep
+!storage/anexos/.gitkeep
+!storage/cache/.gitkeep
+
+# Backups locais
+*.sql.bak
+*.zip.bak
+
+# Backups do banco (dados reais - nunca versionar)
+/backups/
+

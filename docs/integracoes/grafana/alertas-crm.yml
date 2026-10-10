@@ -1,0 +1,81 @@
+# Regras de alerta do CRM (Prometheus/Mimir ou "alerting rules" do Grafana).
+# job="crm" = o scrape de /metrics.php (ver README.md). 2026-10-06.
+groups:
+  - name: crm
+    rules:
+      - alert: CrmForaDoAr
+        expr: up{job="crm"} == 0
+        for: 3m
+        annotations:
+          resumo: "CRM (VM 10.0.0.74) não responde ao Grafana - VM/Apache/PHP fora do ar ou rede."
+      - alert: CrmColetorParado
+        expr: crm_metricas_idade_segundos > 300
+        for: 5m
+        annotations:
+          resumo: "O coletor de métricas parou (cron da VM). Os outros alertas ficam cegos."
+      - alert: CrmContainerParado
+        expr: crm_container_rodando == 0
+        for: 5m
+        annotations:
+          resumo: "Container {{ $labels.container }} parado."
+      - alert: CrmContainerNaoSaudavel
+        expr: crm_container_saudavel == 0
+        for: 10m
+        annotations:
+          resumo: "Container {{ $labels.container }} com healthcheck falhando."
+      - alert: CrmCdcParado
+        expr: crm_debezium_task_rodando == 0 or crm_debezium_conector_rodando == 0
+        for: 10m
+        annotations:
+          resumo: "Debezium (CDC) parado: OpenSearch/dashboards deixam de atualizar. Ver docs/RUNBOOK_SUPORTE.md, seção 5."
+      - alert: CrmCdcAtrasoNaoDiminui
+        expr: crm_cdc_lag_mensagens > 50000 and delta(crm_cdc_lag_mensagens[1h]) >= 0
+        for: 1h
+        annotations:
+          resumo: "Fila do CDC com {{ $value }} mensagens e não diminui há 1h (worker travado?)."
+      - alert: CrmOpenSearchNaoVerde
+        expr: crm_opensearch_status < 2
+        for: 15m
+        annotations:
+          resumo: "OpenSearch amarelo/vermelho."
+      - alert: CrmOpenSearchDesincronizado
+        expr: abs(sum(crm_mysql_registros{entidade="contratos"}) - sum(crm_opensearch_documentos{indice="crm_contratos_v1"})) > 100
+        for: 2h
+        annotations:
+          resumo: "Contratos no OpenSearch diferentes do MySQL há 2h."
+      - alert: CrmDiscoCheio
+        expr: crm_host_disco_uso_percentual > 85
+        for: 10m
+        annotations:
+          resumo: "Disco da VM em {{ $value }}% (incidente de disco cheio em 2026-09-15)."
+      - alert: CrmMysqlEmSwap
+        expr: crm_mysql_swap_bytes > 800e6
+        for: 30m
+        annotations:
+          resumo: "MySQL com mais de 800MB em swap - lentidão; ver scripts/medir-memoria-mysql.sh."
+      - alert: CrmBackupAtrasado
+        expr: time() - crm_backup_ultimo_timestamp_segundos > 26 * 3600
+        for: 10m
+        annotations:
+          resumo: "Último backup do MySQL tem mais de 26h (cron 03:30)."
+      - alert: CrmCargaAcmeNaoAplicada
+        # Segunda a sábado, a partir das 09h (12h UTC): a carga diária deveria ter sido aplicada.
+        expr: (time() - crm_carga_ultima_aplicada_timestamp_segundos > 30 * 3600) and on() (hour() >= 12) and on() (day_of_week() != 0)
+        for: 15m
+        annotations:
+          resumo: "A carga diária da ACME não foi aplicada (última há mais de 30h)."
+      - alert: CrmIntegracaoComErroDefinitivo
+        expr: sum by (integracao) (crm_integracao_eventos{status="erro_definitivo"}) > 0
+        for: 5m
+        annotations:
+          resumo: "Evento pro credor ({{ $labels.integracao }}) desistiu após as tentativas - ver Configurações > Integrações."
+      - alert: CrmIntegracaoFilaAcumulando
+        expr: sum by (integracao) (crm_integracao_eventos{status=~"pendente|erro_retry"}) > 20
+        for: 30m
+        annotations:
+          resumo: "Fila de envio pro credor ({{ $labels.integracao }}) acumulando."
+      - alert: CrmRotinaParada
+        expr: time() - crm_rotina_ultimo_log_timestamp_segundos{rotina=~"executar-rotinas-carga|purge-binlog-seguro|verificar-disco"} > 3600
+        for: 10m
+        annotations:
+          resumo: "Rotina agendada {{ $labels.rotina }} sem rodar há mais de 1h (cron da VM)."

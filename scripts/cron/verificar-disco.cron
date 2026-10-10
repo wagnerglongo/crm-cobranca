@@ -1,0 +1,5 @@
+# Alerta por email se o disco da VM passar de 85% de uso. Nenhum
+# monitoramento geral de disco existia antes (so a protecao reativa do
+# binlog e das cargas grandes) - achado 2026-09-17, ja houve um
+# incidente real de disco cheio em 2026-09-15.
+*/30 * * * * root /opt/crm-dev-docker/scripts/verificar-disco.sh >> /var/log/verificar-disco.log 2>&1

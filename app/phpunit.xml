@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         cacheDirectory="../storage/phpunit-cache"
+         colors="true"
+         failOnWarning="true">
+    <!-- Achado 2026-10-05: a suite rodava no crm_dev de PRODUCAO. Agora usa
+         o banco crm_test (fora do Debezium e dos workers), mantido por
+         scripts/preparar-banco-teste.sh (o pre-commit chama), e a base 3 do
+         Redis (producao: 0 cache/fila, 1 sessoes; homologacao: 2). force=true vence o .env.local. -->
+    <php>
+        <env name="DB_DATABASE" value="crm_test" force="true"/>
+        <env name="REDIS_CACHE_DB" value="3" force="true"/>
+        <env name="REDIS_CACHE_DATABASE" value="3" force="true"/>
+        <env name="REDIS_QUEUE_DB" value="3" force="true"/>
+        <env name="REDIS_QUEUE_DATABASE" value="3" force="true"/>
+    </php>
+    <testsuites>
+        <testsuite name="CRM">
+            <directory>tests/Unit</directory>
+            <directory>tests/Architecture</directory>
+        </testsuite>
+        <!-- Testes que tocam o banco (crm_test, ver <php> acima). Cada
+             teste cria e apaga seus proprios dados sinteticos. -->
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

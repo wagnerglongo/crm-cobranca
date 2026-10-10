@@ -1,0 +1,1874 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Pactua CRM API",
+    "version": "2.2.0-documento-token-simples",
+    "description": "API orientada a documento (CPF ou CNPJ) e contrato. IDs internos não são aceitos como identificadores de entrada. Toda escrita registra o usuário e o token Bearer responsáveis. O fechamento de acordo existe somente no fluxo ACME e valida acordo ativo ou dívida liquidada antes do envio."
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "Servidor atual"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Disponibilidade mínima da API sem exposição de configurações internas."
+    },
+    {
+      "name": "Autenticação",
+      "description": "Emissão e identificação de token Bearer opaco com expiração. Ao expirar, gere outro token com usuário e senha."
+    },
+    {
+      "name": "Clientes",
+      "description": "Pesquisa e ficha 360° do cliente dentro do escopo efetivo do usuário."
+    },
+    {
+      "name": "Contratos",
+      "description": "Pesquisa, financeiro, parcelas e histórico de contratos autorizados."
+    },
+    {
+      "name": "Tabulações",
+      "description": "Catálogo de resultados operacionais e IDs aceitos nos acionamentos."
+    },
+    {
+      "name": "Acionamentos",
+      "description": "Registro individual ou atômico em lote, com autoria obtida do token Bearer."
+    },
+    {
+      "name": "Acordos",
+      "description": "Consulta e fechamento de acordos operacionais com unicidade ativa por contrato."
+    },
+    {
+      "name": "Pesquisa livre",
+      "description": "Métodos flexíveis mantidos para telas humanas. Integrações devem preferir documento ou contrato exatos."
+    },
+    {
+      "name": "ACME",
+      "description": "Simulações e fechamento na API ACME."
+    }
+  ],
+  "x-response-variable-descriptions": {
+    "status": "Estado atual do recurso ou da operação.",
+    "app": "Nome configurado da aplicação.",
+    "api_version": "Versão principal da API utilizada na resposta.",
+    "foundation_patch": "Patch que criou a fundação da API corporativa.",
+    "time": "Data e hora em que o servidor gerou a resposta.",
+    "components": "Estados resumidos dos componentes de infraestrutura.",
+    "mysql": "Estado da conexão com o MySQL, fonte oficial do CRM.",
+    "redis_rate_limit": "Estado do Redis usado no controle de requisições.",
+    "name": "Nome legível do registro ou componente.",
+    "ok": "Indica se a verificação foi concluída com sucesso.",
+    "latency_ms": "Tempo da verificação em milissegundos.",
+    "access_token": "Token opaco usado no botão Authorize e no header Authorization: Bearer.",
+    "token_type": "Tipo de autenticação HTTP; nesta API o valor é Bearer.",
+    "expires_in": "Tempo restante de validade do token, em segundos.",
+    "expires_at": "Data e hora exatas da expiração do token, incluindo o fuso horário do CRM.",
+    "scopes[]": "Escopos técnicos liberados ao token.",
+    "usuario": "Usuário do CRM identificado pelo token e responsável pela operação.",
+    "id": "Identificador técnico do registro retornado; não é usado como identificador nas rotas públicas.",
+    "nome": "Nome legível do registro ou usuário.",
+    "login": "Login do usuário responsável.",
+    "email": "E-mail cadastrado, quando disponível.",
+    "perfil": "Código do perfil de acesso.",
+    "perfil_nome": "Nome legível do perfil de acesso.",
+    "permissoes[]": "Permissões efetivas herdadas do usuário do CRM.",
+    "escopo.todos": "Indica se o usuário pode acessar todos os credores e carteiras.",
+    "escopo.credor_ids[]": "Credores autorizados quando o acesso não é global.",
+    "escopo.carteira_ids[]": "Carteiras autorizadas quando o acesso não é global.",
+    "token.tipo": "Tipo interno do token emitido.",
+    "token.scopes[]": "Escopos técnicos do token atual.",
+    "data": "Conteúdo principal retornado pelo método.",
+    "meta": "Metadados da consulta ou da operação.",
+    "count": "Quantidade de registros retornados.",
+    "limit": "Limite máximo aplicado à consulta.",
+    "query": "Termo usado na pesquisa.",
+    "documento": "CPF com 11 dígitos ou CNPJ com 14 dígitos, normalizado sem pontuação.",
+    "tipo_documento": "Tipo identificado pelo tamanho do documento: CPF ou CNPJ.",
+    "cliente": "Dados cadastrais do cliente localizado.",
+    "resumo": "Totais consolidados do cliente dentro do escopo do token.",
+    "total_contratos": "Quantidade de contratos autorizados para o cliente.",
+    "saldo_total": "Soma aproximada dos saldos dos contratos retornados.",
+    "total_contatos": "Quantidade de contatos cadastrados para o cliente.",
+    "contratos[]": "Contratos do cliente visíveis ao usuário autenticado.",
+    "contrato": "Código de negócio do contrato usado na operação.",
+    "contrato_id": "Identificador técnico interno do contrato retornado para rastreabilidade; as rotas públicas usam o código do contrato.",
+    "codigo_contrato": "Código do contrato no sistema do credor.",
+    "pessoa_nome": "Nome da pessoa ou empresa vinculada.",
+    "pessoa_id": "Identificador técnico interno da pessoa retornado para rastreabilidade; as rotas públicas usam o documento.",
+    "pessoa_documento": "CPF ou CNPJ da pessoa ou empresa vinculada.",
+    "credor_nome": "Nome do credor responsável pelo contrato.",
+    "carteira_nome": "Nome da carteira operacional.",
+    "saldo_atual": "Saldo atual do contrato.",
+    "dias_atraso": "Quantidade de dias de atraso calculada para o contrato.",
+    "codigo": "Código estável do registro retornado.",
+    "categoria": "Grupo funcional da tabulação.",
+    "gera_reagendamento": "Indica se a tabulação gera um próximo contato.",
+    "considera_sucesso": "Indica se a tabulação conta como contato bem-sucedido.",
+    "ativo": "Indica se o registro está disponível para uso.",
+    "somente_ativas": "Indica se a consulta filtrou apenas tabulações ativas.",
+    "acionamento": "Identificador do acionamento criado no CRM.",
+    "created": "Quantidade de acionamentos criados pelo lote.",
+    "atomic": "Indica que o lote inteiro foi confirmado ou revertido como uma única transação.",
+    "acordo": "Identificador do acordo registrado no CRM.",
+    "codigo_acordo_credor": "Código do acordo informado pelo credor, quando disponível.",
+    "valor_acordo": "Valor total do acordo.",
+    "status_operacional": "Situação operacional atual do acordo.",
+    "operador_nome": "Nome do usuário que registrou a operação.",
+    "criado_em": "Data e hora em que o registro foi criado no CRM.",
+    "owner_description": "Descrição do titular/credor devolvida pela ACME e reutilizada no fechamento.",
+    "valor_divida": "Valor atual da dívida informado pela ACME.",
+    "propostas[]": "Propostas disponíveis na simulação ACME atual.",
+    "negotiation_id": "Identificador da proposta ACME que deve ser enviado no fechamento.",
+    "descricao": "Descrição legível devolvida pela ACME.",
+    "calculo": "Tipo de cálculo informado pela ACME.",
+    "quantidade_parcelas": "Quantidade total de parcelas da proposta.",
+    "valor_referencia": "Valor de referência extraído da descrição da proposta.",
+    "datas_primeira_parcela[]": "Datas permitidas pela ACME para a primeira parcela.",
+    "data_primeira_parcela": "Data normalizada no formato YYYY-MM-DD.",
+    "valor_acme": "Valor original da data exigido pela integração ACME.",
+    "tipos_pagamento[]": "Formas de pagamento informadas pela ACME.",
+    "tag": "Código técnico da forma de pagamento na ACME.",
+    "status_integracao": "Estado do envio do acordo ao credor.",
+    "token_id": "Identificador técnico do token usado na autoria e auditoria.",
+    "error.code": "Código estável do erro para tratamento pela integração.",
+    "error.message": "Mensagem legível descrevendo o erro.",
+    "error.details": "Detalhes de validação quando disponíveis.",
+    "error.request_id": "Identificador da requisição para rastreamento na auditoria e nos logs."
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Verificar disponibilidade da API",
+        "operationId": "getApiHealth",
+        "security": [],
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "API operacional.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Componente obrigatório indisponível.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-variable-descriptions": {},
+        "x-response-example": {
+          "status": "ok",
+          "app": "Pactua CRM",
+          "api_version": "v1",
+          "foundation_patch": 121,
+          "time": "2026-08-18T15:30:00-03:00",
+          "components": {
+            "mysql": "up",
+            "redis_rate_limit": "up"
+          }
+        }
+      }
+    },
+    "/health/components": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Consultar saúde dos componentes internos",
+        "description": "Endpoint administrativo. Retorna apenas nome, estado e latência; não expõe hosts, URLs, usuários ou segredos.",
+        "operationId": "getApiComponentHealth",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-required-permission": "integracoes.visualizar",
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Diagnóstico sanitizado dos componentes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "degraded"
+                      ]
+                    },
+                    "components": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "latency_ms": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-variable-descriptions": {},
+        "x-response-example": {
+          "status": "ok",
+          "components": [
+            {
+              "name": "MySQL",
+              "status": "up",
+              "ok": true,
+              "latency_ms": 4
+            }
+          ]
+        }
+      }
+    },
+    "/auth/token": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Emitir access token por usuário e senha",
+        "description": "Reutiliza as validações do login do CRM, incluindo status, bloqueio temporário e troca obrigatória de senha. O token integral é retornado somente nesta resposta.",
+        "operationId": "createAccessToken",
+        "security": [],
+        "x-implementation-status": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              },
+              "example": {
+                "login": "seu_usuario",
+                "senha": "sua_senha",
+                "nome": "Integração homologação"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token de acesso emitido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        },
+        "x-variable-descriptions": {
+          "login": "Login ativo do usuário no CRM.",
+          "senha": "Senha atual do usuário. É usada somente para emitir o token e não é armazenada pela API.",
+          "nome": "Identificação legível da sessão/token."
+        },
+        "x-response-variable-descriptions": {
+          "access_token": "Token opaco que deve ser informado no botão Authorize e enviado como Bearer nas rotas protegidas.",
+          "token_type": "Tipo de autenticação HTTP; o valor retornado é sempre Bearer.",
+          "expires_in": "Quantidade de segundos restantes até a expiração do token. O padrão atual é 1800 segundos (30 minutos).",
+          "expires_at": "Data e hora exatas em que o token deixa de ser aceito.",
+          "scopes[]": "Escopos técnicos liberados para o token.",
+          "usuario.id": "Identificador interno do usuário autenticado, usado somente para autoria e auditoria.",
+          "usuario.nome": "Nome do usuário responsável pelo token.",
+          "usuario.login": "Login do usuário responsável pelo token.",
+          "usuario.email": "E-mail do usuário, quando cadastrado.",
+          "usuario.perfil": "Código do perfil de acesso do usuário.",
+          "usuario.perfil_nome": "Nome legível do perfil de acesso."
+        },
+        "x-response-example": {
+          "access_token": "wrk_api_at_...",
+          "token_type": "Bearer",
+          "expires_in": 1800,
+          "expires_at": "2026-08-18T16:00:00-03:00",
+          "scopes": [
+            "api"
+          ],
+          "usuario": {
+            "id": 12,
+            "nome": "OPERADOR",
+            "login": "operador",
+            "email": "operador@empresa.com",
+            "perfil": "OPERADOR",
+            "perfil_nome": "Operador"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Consultar usuário, permissões e escopo do token",
+        "operationId": "getAuthenticatedUser",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-implementation-status": "implemented",
+        "responses": {
+          "200": {
+            "description": "Contexto efetivo do token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-variable-descriptions": {},
+        "x-response-example": {
+          "usuario": {
+            "id": 12,
+            "nome": "OPERADOR",
+            "login": "operador",
+            "email": "operador@empresa.com",
+            "perfil": "OPERADOR",
+            "perfil_nome": "Operador"
+          },
+          "permissoes": [
+            "clientes.consultar",
+            "atendimentos.registrar"
+          ],
+          "escopo": {
+            "todos": false,
+            "credor_ids": [
+              1
+            ],
+            "carteira_ids": [
+              3
+            ]
+          },
+          "token": {
+            "tipo": "usuario",
+            "scopes": [
+              "api"
+            ]
+          }
+        }
+      }
+    },
+    "/clientes/documento/{documento}": {
+      "get": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Consultar cliente por CPF ou CNPJ exato",
+        "description": "Recebe CPF com 11 dígitos ou CNPJ com 14 dígitos e retorna cliente, resumo e contratos autorizados.",
+        "operationId": "getClientByDocument",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-required-permission": "clientes.consultar",
+        "parameters": [
+          {
+            "name": "documento",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9./-]{11,18}$"
+            },
+            "example": "12345678000190",
+            "description": "CPF com 11 dígitos ou CNPJ com 14 dígitos, com ou sem pontuação."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente e contratos encontrados."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-variable-descriptions": {
+          "documento": "CPF com 11 dígitos ou CNPJ com 14 dígitos. A pontuação é removida pelo servidor."
+        },
+        "x-response-example": {
+          "data": {
+            "cliente": {
+              "documento": "12345678000190",
+              "tipo_documento": "CNPJ",
+              "nome": "CLIENTE EXEMPLO"
+            },
+            "resumo": {
+              "total_contratos": 2,
+              "saldo_total": 3540.75,
+              "total_contatos": 3
+            },
+            "contratos": [
+              {
+                "codigo_contrato": "CONTRATO-123",
+                "credor_nome": "ACME",
+                "saldo_atual": "3540.75",
+                "status": "ativo"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "/tabulacoes": {
+      "get": {
+        "tags": [
+          "Tabulações"
+        ],
+        "summary": "Listar tabulações e seus IDs",
+        "description": "Use o campo id retornado como resultado_id na criação de acionamentos.",
+        "operationId": "listCallResults",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-required-permission": "atendimentos.visualizar",
+        "parameters": [
+          {
+            "name": "ativas",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catálogo de tabulações."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-variable-descriptions": {
+          "ativas": "Parâmetro."
+        },
+        "x-response-example": {
+          "data": [
+            {
+              "id": 7,
+              "codigo": "CONTATO_COM_CLIENTE",
+              "nome": "Contato com o cliente",
+              "categoria": "Contato efetivo",
+              "gera_reagendamento": 0,
+              "considera_sucesso": 1,
+              "ativo": 1
+            }
+          ],
+          "meta": {
+            "count": 1,
+            "somente_ativas": true
+          }
+        }
+      }
+    },
+    "/acionamentos/lote": {
+      "post": {
+        "tags": [
+          "Acionamentos"
+        ],
+        "summary": "Registrar lote por contrato ou documento",
+        "operationId": "createBusinessBulkActions",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Criado com autoria do Bearer token."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-required-permission": "atendimentos.registrar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessBulkActionRequest"
+              },
+              "example": {
+                "resultado_id": 7,
+                "canal": "ligacao",
+                "observacao": "Lote externo.",
+                "itens": [
+                  {
+                    "contrato": "CONTRATO-123"
+                  },
+                  {
+                    "documento": "12345678000190"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "x-variable-descriptions": {
+          "resultado_id": "ID obtido em GET /tabulacoes.",
+          "canal": "Canal do acionamento.",
+          "observacao": "Observação gravada no histórico.",
+          "itens": "Alvos por contrato ou documento (CPF/CNPJ)."
+        },
+        "x-response-example": {
+          "data": [
+            {
+              "acionamento": 9001,
+              "contrato": "CONTRATO-123"
+            },
+            {
+              "acionamento": 9002,
+              "documento": "12345678000190"
+            }
+          ],
+          "meta": {
+            "created": 2,
+            "atomic": true
+          }
+        }
+      }
+    },
+    "/acordos": {
+      "get": {
+        "tags": [
+          "Acordos"
+        ],
+        "summary": "Consultar acordos",
+        "operationId": "listAgreements",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-required-permission": "acordos.visualizar",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "todos",
+                "ativos",
+                "pendente",
+                "formalizado",
+                "cumprido",
+                "quebrado",
+                "cancelado"
+              ],
+              "default": "todos"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Acordos no escopo do usuário."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-variable-descriptions": {
+          "status": "Parâmetro.",
+          "q": "Parâmetro.",
+          "limit": "Parâmetro."
+        },
+        "x-response-example": {
+          "data": [
+            {
+              "pessoa_nome": "CLIENTE EXEMPLO",
+              "codigo_contrato": "CONTRATO-123",
+              "valor_acordo": "1200.00",
+              "status_operacional": "pendente"
+            }
+          ],
+          "meta": {
+            "count": 1,
+            "limit": 100
+          }
+        }
+      }
+    },
+    "/contratos/codigo/{contrato}": {
+      "get": {
+        "tags": [
+          "Contratos"
+        ],
+        "summary": "Consultar contrato pelo código exato",
+        "description": "Pesquisa exata em código do contrato, conta ou identificador de origem. Pode retornar mais de um resultado quando credores distintos reutilizam o código.",
+        "operationId": "getContractByCode",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "x-required-permission": "clientes.consultar",
+        "parameters": [
+          {
+            "name": "contrato",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "example": "CONTRATO-123",
+            "description": "Código exato do contrato no credor, conta ou identificador de origem."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contratos encontrados."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-variable-descriptions": {
+          "contrato": "Código exato do contrato no credor, conta ou identificador de origem."
+        },
+        "x-response-example": {
+          "data": [
+            {
+              "codigo_contrato": "CONTRATO-123",
+              "pessoa_nome": "CLIENTE EXEMPLO",
+              "pessoa_documento": "12345678901",
+              "credor_nome": "ACME",
+              "carteira_nome": "CARTEIRA PRINCIPAL",
+              "saldo_atual": "3540.75",
+              "dias_atraso": 92,
+              "status": "ativo"
+            }
+          ],
+          "meta": {
+            "count": 1,
+            "contrato": "CONTRATO-123"
+          }
+        }
+      }
+    },
+    "/acionamentos/contrato/{contrato}": {
+      "post": {
+        "tags": [
+          "Acionamentos"
+        ],
+        "summary": "Registrar acionamento pelo contrato",
+        "operationId": "createActionByContract",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "contrato",
+            "in": "path",
+            "required": true,
+            "description": "Código do contrato no credor; não é ID interno.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CONTRATO-123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Criado com autoria do Bearer token."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-required-permission": "atendimentos.registrar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionRequest"
+              },
+              "example": {
+                "resultado_id": 7,
+                "canal": "ligacao",
+                "observacao": "Cliente contatado."
+              }
+            }
+          }
+        },
+        "x-variable-descriptions": {
+          "contrato": "Código do contrato no credor; não é ID interno.",
+          "resultado_id": "ID obtido em GET /tabulacoes.",
+          "canal": "Canal do acionamento.",
+          "contato_id": "ID opcional de um contato já cadastrado no CRM.",
+          "contato_utilizado": "Telefone, e-mail ou referência realmente utilizada no contato.",
+          "observacao": "Observação gravada no histórico.",
+          "proximo_acionamento": "Data/hora local no formato YYYY-MM-DD HH:MM:SS."
+        },
+        "x-response-example": {
+          "data": {
+            "acionamento": 9001,
+            "contrato": "CONTRATO-123",
+            "documento": "12345678901",
+            "usuario": {
+              "id": 12,
+              "nome": "OPERADOR",
+              "login": "operador",
+              "token_id": 44
+            }
+          }
+        }
+      }
+    },
+    "/acionamentos/documento/{documento}": {
+      "post": {
+        "tags": [
+          "Acionamentos"
+        ],
+        "summary": "Registrar acionamento pelo CPF ou CNPJ",
+        "operationId": "createActionByDocument",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "documento",
+            "in": "path",
+            "required": true,
+            "description": "CPF com 11 dígitos ou CNPJ com 14 dígitos, com ou sem pontuação.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9./-]{11,18}$"
+            },
+            "example": "12345678901"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Criado com autoria do Bearer token."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-required-permission": "atendimentos.registrar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionRequest"
+              },
+              "example": {
+                "resultado_id": 7,
+                "canal": "whatsapp",
+                "observacao": "Mensagem enviada."
+              }
+            }
+          }
+        },
+        "x-variable-descriptions": {
+          "documento": "CPF com 11 dígitos ou CNPJ com 14 dígitos.",
+          "resultado_id": "ID obtido em GET /tabulacoes.",
+          "canal": "Canal do acionamento.",
+          "contato_id": "ID opcional de um contato já cadastrado no CRM.",
+          "contato_utilizado": "Telefone, e-mail ou referência realmente utilizada no contato.",
+          "observacao": "Observação gravada no histórico.",
+          "proximo_acionamento": "Data/hora local no formato YYYY-MM-DD HH:MM:SS."
+        },
+        "x-response-example": {
+          "data": {
+            "acionamento": 9002,
+            "documento": "12345678000190",
+            "usuario": {
+              "id": 12,
+              "nome": "OPERADOR",
+              "login": "operador",
+              "token_id": 44
+            }
+          }
+        }
+      }
+    },
+    "/acordos/contrato/{contrato}": {
+      "get": {
+        "tags": [
+          "Acordos"
+        ],
+        "summary": "Consultar acordos pelo contrato",
+        "operationId": "getAgreementsByContract",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "contrato",
+            "in": "path",
+            "required": true,
+            "description": "Código do contrato no credor; não é ID interno.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CONTRATO-123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-variable-descriptions": {
+          "contrato": "Código do contrato no credor; não é ID interno."
+        },
+        "x-response-example": {
+          "data": [
+            {
+              "codigo_acordo_credor": "ACME-2026-0001",
+              "pessoa_nome": "CLIENTE EXEMPLO",
+              "pessoa_documento": "12345678901",
+              "codigo_contrato": "CONTRATO-123",
+              "valor_acordo": "1200.00",
+              "quantidade_parcelas": 6,
+              "status_operacional": "pendente",
+              "status_integracao": "enviado",
+              "operador_nome": "OPERADOR",
+              "criado_em": "2026-08-18 15:30:00"
+            }
+          ],
+          "meta": {
+            "contrato": "CONTRATO-123",
+            "count": 1
+          }
+        }
+      }
+    },
+    "/acordos/documento/{documento}": {
+      "get": {
+        "tags": [
+          "Acordos"
+        ],
+        "summary": "Consultar acordos pelo CPF ou CNPJ",
+        "operationId": "getAgreementsByDocument",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "documento",
+            "in": "path",
+            "required": true,
+            "description": "CPF com 11 dígitos ou CNPJ com 14 dígitos, com ou sem pontuação.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9./-]{11,18}$"
+            },
+            "example": "12345678901"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          }
+        },
+        "x-variable-descriptions": {
+          "documento": "CPF com 11 dígitos ou CNPJ com 14 dígitos."
+        },
+        "x-response-example": {
+          "data": [
+            {
+              "codigo_acordo_credor": "ACME-2026-0001",
+              "pessoa_nome": "EMPRESA EXEMPLO LTDA",
+              "pessoa_documento": "12345678000190",
+              "codigo_contrato": "CONTRATO-123",
+              "valor_acordo": "1200.00",
+              "quantidade_parcelas": 6,
+              "status_operacional": "pendente",
+              "status_integracao": "enviado",
+              "operador_nome": "OPERADOR",
+              "criado_em": "2026-08-18 15:30:00"
+            }
+          ],
+          "meta": {
+            "documento": "12345678000190",
+            "tipo_documento": "CNPJ",
+            "count": 1
+          }
+        }
+      }
+    },
+    "/acme/documento/{documento}/contrato/{contrato}/simulacoes": {
+      "get": {
+        "tags": [
+          "ACME"
+        ],
+        "summary": "Consultar simulações financeiras ACME",
+        "description": "Consulta a situação atual no CRM e na ACME. Somente quando não existe acordo ativo, contrato retirado ou dívida liquidada, gera as mesmas propostas utilizadas pelo Financeiro Pactua. A resposta já normaliza o ID da proposta, valor, parcelas e datas para uso direto no fechamento.",
+        "operationId": "getAcmeSimulations",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "documento",
+            "in": "path",
+            "required": true,
+            "description": "CPF com 11 dígitos ou CNPJ com 14 dígitos, com ou sem pontuação.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9./-]{11,18}$"
+            },
+            "example": "12345678901"
+          },
+          {
+            "name": "contrato",
+            "in": "path",
+            "required": true,
+            "description": "Código do contrato no credor; não é ID interno.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CONTRATO-123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operação concluída."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "502": {
+            "description": "Falha ao consultar a situação ou gerar propostas na API ACME.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-variable-descriptions": {
+          "documento": "CPF com 11 dígitos ou CNPJ com 14 dígitos.",
+          "contrato": "Código do contrato no credor; não é ID interno."
+        },
+        "x-response-example": {
+          "data": {
+            "documento": "12345678000190",
+            "tipo_documento": "CNPJ",
+            "contrato": "CONTRATO-123",
+            "owner_description": "ACME",
+            "valor_divida": 1200,
+            "propostas": [
+              {
+                "negotiation_id": 321,
+                "descricao": "6x de R$ 200,00",
+                "calculo": "PARCELADO",
+                "quantidade_parcelas": 6,
+                "valor_referencia": 200,
+                "valor_acordo": 1200
+              }
+            ],
+            "datas_primeira_parcela": [
+              {
+                "data_primeira_parcela": "2026-09-20",
+                "valor_acme": "2026-09-20T00:00:00"
+              }
+            ],
+            "tipos_pagamento": [
+              {
+                "tag": "BANK_SLIP",
+                "descricao": "Boleto"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "/acme/documento/{documento}/contrato/{contrato}/acordos": {
+      "post": {
+        "tags": [
+          "ACME"
+        ],
+        "summary": "Fechar proposta ACME selecionada",
+        "description": "Único método de criação de acordo da API. Antes de enviar a proposta, o CRM confirma no banco local e na ACME que o contrato não foi retirado, não possui acordo ativo e não está liquidado/quitado. O fechamento usa o mesmo serviço ACME do Financeiro Pactua e grava a autoria a partir do Bearer token.",
+        "operationId": "createAcmeAgreement",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "documento",
+            "in": "path",
+            "required": true,
+            "description": "CPF com 11 dígitos ou CNPJ com 14 dígitos, com ou sem pontuação.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9./-]{11,18}$"
+            },
+            "example": "12345678901"
+          },
+          {
+            "name": "contrato",
+            "in": "path",
+            "required": true,
+            "description": "Código do contrato no credor; não é ID interno.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "CONTRATO-123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Criado com autoria do Bearer token."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "Contrato retirado, fechamento já em andamento, acordo ativo existente ou dívida já liquidada/quitada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "502": {
+            "description": "Falha ao consultar a situação ou salvar a proposta na API ACME.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "x-required-permission": "acordos.criar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcmeAgreementRequest"
+              },
+              "example": {
+                "negotiation_id": 321,
+                "phone_id": 0,
+                "data_primeira_parcela": "2026-09-20",
+                "forma_pagamento": "boleto",
+                "observacao": "Proposta escolhida pelo cliente."
+              }
+            }
+          }
+        },
+        "x-variable-descriptions": {
+          "documento": "CPF com 11 dígitos ou CNPJ com 14 dígitos.",
+          "contrato": "Código do contrato no credor; não é ID interno.",
+          "negotiation_id": "Identificador da proposta escolhida, retornado pelo método de simulações ACME.",
+          "data_primeira_parcela": "Uma das datas disponíveis retornadas pelo método de simulações ACME, no formato YYYY-MM-DD.",
+          "phone_id": "Identificador de telefone aceito pela ACME. Use 0 quando nenhum telefone específico for selecionado.",
+          "forma_pagamento": "Forma de pagamento usada no registro local do CRM.",
+          "observacao": "Observação opcional para o histórico do acordo no CRM."
+        },
+        "x-response-example": {
+          "data": {
+            "acordo": 502,
+            "documento": "12345678000190",
+            "tipo_documento": "CNPJ",
+            "contrato": "CONTRATO-123",
+            "status_integracao": "enviado",
+            "usuario": {
+              "id": 12,
+              "nome": "OPERADOR",
+              "login": "operador",
+              "token_id": 44
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Opaque",
+        "description": "Informe apenas o access_token emitido por POST /auth/token."
+      }
+    },
+    "parameters": {
+      "Id": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer",
+          "format": "int64",
+          "minimum": 1
+        },
+        "example": 1
+      },
+      "Limit50": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 20
+        }
+      },
+      "Limit300": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300,
+          "default": 50
+        }
+      },
+      "Limit1000": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 300
+        }
+      }
+    },
+    "schemas": {
+      "TokenRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "login",
+          "senha"
+        ],
+        "properties": {
+          "login": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 180
+          },
+          "senha": {
+            "type": "string",
+            "format": "password",
+            "minLength": 1,
+            "writeOnly": true
+          },
+          "nome": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Identificação legível da sessão/token."
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": [
+          "id",
+          "nome",
+          "login",
+          "perfil"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nome": {
+            "type": "string"
+          },
+          "login": {
+            "type": "string"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "email"
+          },
+          "perfil": {
+            "type": "string"
+          },
+          "perfil_nome": {
+            "type": "string"
+          }
+        }
+      },
+      "TokenResponse": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "expires_at",
+          "scopes",
+          "usuario"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "readOnly": true
+          },
+          "token_type": {
+            "type": "string",
+            "const": "Bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "example": 1800
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Data e hora exatas da expiração no fuso configurado do CRM."
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "usuario": {
+            "$ref": "#/components/schemas/User"
+          }
+        }
+      },
+      "MeResponse": {
+        "type": "object",
+        "required": [
+          "usuario",
+          "permissoes",
+          "escopo",
+          "token"
+        ],
+        "properties": {
+          "usuario": {
+            "$ref": "#/components/schemas/User"
+          },
+          "permissoes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "escopo": {
+            "type": "object",
+            "required": [
+              "todos",
+              "credor_ids",
+              "carteira_ids"
+            ],
+            "properties": {
+              "todos": {
+                "type": "boolean"
+              },
+              "credor_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              },
+              "carteira_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "token": {
+            "type": "object",
+            "properties": {
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "usuario",
+                  "integracao"
+                ]
+              },
+              "scopes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "app",
+          "api_version",
+          "time",
+          "components"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "app": {
+            "type": "string"
+          },
+          "api_version": {
+            "type": "string",
+            "const": "v1"
+          },
+          "foundation_patch": {
+            "type": "integer",
+            "const": 121
+          },
+          "time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "components": {
+            "type": "object",
+            "properties": {
+              "mysql": {
+                "type": "string",
+                "enum": [
+                  "up",
+                  "down"
+                ]
+              },
+              "redis_rate_limit": {
+                "type": "string",
+                "enum": [
+                  "up",
+                  "down"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "request_id"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "request_id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "ActionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "resultado_id"
+        ],
+        "properties": {
+          "resultado_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Identificador da tabulação ativa obtido em GET /tabulacoes."
+          },
+          "canal": {
+            "type": "string",
+            "enum": [
+              "ligacao",
+              "whatsapp",
+              "sms",
+              "email",
+              "outro"
+            ],
+            "default": "ligacao",
+            "description": "Canal utilizado no contato com o cliente."
+          },
+          "contato_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Identificador opcional de um telefone/e-mail já cadastrado no CRM."
+          },
+          "contato_utilizado": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "Telefone, e-mail ou outra referência efetivamente utilizada no contato."
+          },
+          "observacao": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 3000,
+            "description": "Relato opcional que será gravado no histórico do acionamento."
+          },
+          "proximo_acionamento": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Data/hora local no formato YYYY-MM-DD HH:MM:SS."
+          },
+          "motivo_inadimplencia_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "Motivo da inadimplência (obrigatório quando a tabulação indica contato com a pessoa certa sem acordo)."
+          }
+        }
+      },
+      "BusinessBulkActionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "resultado_id",
+          "itens"
+        ],
+        "properties": {
+          "resultado_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Identificador da tabulação ativa obtido em GET /tabulacoes."
+          },
+          "canal": {
+            "type": "string",
+            "description": "Canal aplicado a todos os acionamentos do lote."
+          },
+          "observacao": {
+            "type": "string",
+            "description": "Observação aplicada a todos os acionamentos do lote."
+          },
+          "itens": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Informe exatamente um identificador de negócio: contrato ou documento (CPF/CNPJ).",
+              "oneOf": [
+                {
+                  "required": [
+                    "contrato"
+                  ]
+                },
+                {
+                  "required": [
+                    "documento"
+                  ]
+                }
+              ],
+              "properties": {
+                "contrato": {
+                  "type": "string",
+                  "description": "Código do contrato no credor; não é ID interno."
+                },
+                "documento": {
+                  "type": "string",
+                  "pattern": "^[0-9./-]{11,18}$",
+                  "description": "CPF com 11 dígitos ou CNPJ com 14 dígitos."
+                }
+              }
+            }
+          }
+        }
+      },
+      "AcmeAgreementRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "negotiation_id",
+          "data_primeira_parcela"
+        ],
+        "properties": {
+          "negotiation_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Identificador retornado em data.propostas[].negotiation_id pelo método de simulações ACME."
+          },
+          "data_primeira_parcela": {
+            "type": "string",
+            "format": "date",
+            "description": "Uma das datas retornadas em data.datas_primeira_parcela[].data_primeira_parcela."
+          },
+          "phone_id": {
+            "type": "integer",
+            "minimum": 0,
+            "default": 0,
+            "description": "Identificador de telefone da ACME; use 0 quando não houver seleção específica."
+          },
+          "forma_pagamento": {
+            "type": "string",
+            "enum": [
+              "nao_informado",
+              "boleto",
+              "pix",
+              "debito_conta",
+              "cartao",
+              "transferencia",
+              "outro"
+            ],
+            "default": "nao_informado",
+            "description": "Forma de pagamento registrada no acordo local."
+          },
+          "observacao": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000,
+            "description": "Observação opcional registrada no acordo e na auditoria do CRM."
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Credenciais ou token inválidos.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Permissão, escopo do token ou escopo de credor insuficiente.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Registro inexistente ou fora do escopo do usuário.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Dados inválidos.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Limite de requisições excedido.",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "Dependência obrigatória indisponível.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Conflito de regra de negócio, como acordo ativo, contrato ambíguo ou operação concorrente.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}

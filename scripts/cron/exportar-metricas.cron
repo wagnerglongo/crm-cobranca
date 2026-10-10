@@ -1,0 +1,4 @@
+# A cada minuto: metricas do CRM pro Grafana (scripts/exportar-metricas.sh ->
+# storage/metrics/crm.prom, servido com token em /metrics.php). 2026-10-06.
+# So escreve no log se der erro.
+* * * * * root /opt/crm-dev-docker/scripts/exportar-metricas.sh >> /var/log/exportar-metricas.log 2>&1

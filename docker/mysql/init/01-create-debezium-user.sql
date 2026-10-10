@@ -1,0 +1,3 @@
+-- Credencial do usuário Debezium não fica mais fixa neste arquivo.
+-- O usuário é criado por 01-create-debezium-user.sh usando MYSQL_DEBEZIUM_USER
+-- e MYSQL_DEBEZIUM_PASSWORD fornecidos pelo .env.local do container MySQL.

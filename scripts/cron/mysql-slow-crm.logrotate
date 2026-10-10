@@ -1,0 +1,11 @@
+/var/lib/docker/volumes/crm-dev_mysql_data/_data/mysql-slow.log {
+    su root root
+    daily
+    rotate 7
+    maxsize 200M
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

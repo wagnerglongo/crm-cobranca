@@ -1,0 +1,4 @@
+# A cada minuto: copia do banco de producao pra homologacao quando agendada
+# (padrao domingo 05:00) ou pedida em Administracao > Homologacao. 2026-10-06.
+# O log de cada copia fica em storage/logs/homologacao-copia.log.
+* * * * * root /opt/crm-dev-docker/scripts/homologacao-agendador.sh >> /var/log/homologacao-agendador.log 2>&1

@@ -1,0 +1,75 @@
+// Grafana Alloy na VM do CRM (10.0.0.74) - 2026-10-06.
+// Envia LOGS pro Loki da empresa e, opcionalmente, as MÉTRICAS por push
+// (use o push só se o Prometheus da empresa não alcançar a VM pra fazer scrape).
+// Trocar LOKI_URL / PROMETHEUS_REMOTE_WRITE_URL pelos endereços da empresa.
+
+// ---------- Logs das rotinas agendadas (cron, rodam como root) ----------
+local.file_match "crm_rotinas" {
+  path_targets = [{
+    "__path__" = "/var/log/{backup-mysql,purge-binlog-seguro,verificar-saude-cdc,verificar-disco,limpar-staging-antigo,executar-rotinas-carga,atualizar-carteira-acordos,exportar-metricas}.log",
+    "job"      = "crm-rotinas",
+    "host"     = "crm-vm",
+  }]
+}
+loki.source.file "crm_rotinas" {
+  targets    = local.file_match.crm_rotinas.targets
+  forward_to = [loki.write.empresa.receiver]
+}
+
+// ---------- Logs da aplicação (chamadas à API da ACME, documento já mascarado) ----------
+local.file_match "crm_app" {
+  path_targets = [{
+    "__path__" = "/opt/crm-dev-docker/storage/logs/{acme_api.log,integracoes_acme.jsonl,exportar-metricas.log}",
+    "job"      = "crm-app",
+    "host"     = "crm-vm",
+  }]
+}
+loki.source.file "crm_app" {
+  targets    = local.file_match.crm_app.targets
+  forward_to = [loki.write.empresa.receiver]
+}
+
+// ---------- Logs dos containers (Apache com status/tempo, PHP, workers, MySQL, Debezium...) ----------
+discovery.docker "crm" {
+  host = "unix:///var/run/docker.sock"
+  filter {
+    name   = "name"
+    values = ["crm_"]
+  }
+}
+discovery.relabel "crm" {
+  targets = discovery.docker.crm.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "container"
+  }
+}
+loki.source.docker "crm" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.crm.output
+  labels     = { "job" = "crm-containers", "host" = "crm-vm" }
+  forward_to = [loki.write.empresa.receiver]
+}
+
+loki.write "empresa" {
+  endpoint {
+    url = "https://LOKI_URL/loki/api/v1/push"
+  }
+}
+
+// ---------- (Opcional) métricas por push ----------
+// prometheus.scrape "crm" {
+//   targets         = [{ "__address__" = "127.0.0.1:8080" }]
+//   metrics_path    = "/metrics.php"
+//   job_name        = "crm"
+//   scrape_interval = "60s"
+//   authorization {
+//     type             = "Bearer"
+//     credentials_file = "/opt/crm-dev-docker/storage/metrics/token"
+//   }
+//   forward_to = [prometheus.remote_write.empresa.receiver]
+// }
+// prometheus.remote_write "empresa" {
+//   endpoint { url = "https://PROMETHEUS_REMOTE_WRITE_URL/api/v1/write" }
+// }

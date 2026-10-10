@@ -1,0 +1,9 @@
+# Verifica e dispara rotinas de carga SFTP agendadas (Administracao > Rotinas
+# de Carga). O script so age em rotinas com status='ativa' e horario<=agora
+# que ainda nao rodaram hoje - roda a cada 5 min pra o agendamento (ex: 06:05)
+# ser respeitado com boa precisao sem sobrecarregar.
+# Instalado por requisito da operação: a rotina da ACME (id 37) foi configurada e
+# ativada em 2026-09-16, mas nunca disparou sozinha porque este cron nunca
+# tinha sido instalado (unica execucao registrada era o teste manual via
+# botao "Executar agora").
+*/5 * * * * root cd /opt/crm-dev-docker && docker compose exec -T php php console/executar_rotinas_carga.php >> /var/log/executar-rotinas-carga.log 2>&1

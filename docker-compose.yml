@@ -1,0 +1,542 @@
+name: crm-dev
+
+# Achado 2026-09-17: nenhum servico tinha limite de log configurado -
+# `docker logs` crescia sem limite (mesmo risco que ja existia nos logs
+# dos crons antes do logrotate). Aplicado a todos os servicos abaixo via
+# `logging: *default-logging`.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  php:
+    image: crm-dev-php:latest
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+      args:
+        HOST_UID: ${HOST_UID:-1000}
+        HOST_GID: ${HOST_GID:-1000}
+    container_name: crm_php
+    logging: *default-logging
+    env_file:
+      - ./.env.local
+    working_dir: /var/www/html
+    volumes:
+      - ./app:/var/www/html
+      - ./storage:/var/www/storage
+      - ./.env.local:/var/www/html/.env.local:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "php -r '$$s=@fsockopen(\"127.0.0.1\",9000,$$e,$$m,1); exit($$s?0:1);'"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    mem_limit: 512m
+    restart: unless-stopped
+
+  integration-worker:
+    image: crm-dev-php:latest
+    container_name: crm_integration_worker
+    logging: *default-logging
+    env_file:
+      - ./.env.local
+    working_dir: /var/www/html
+    command: ["php", "console/integracao_worker.php"]
+    volumes:
+      - ./app:/var/www/html
+      - ./storage:/var/www/storage
+      - ./.env.local:/var/www/html/.env.local:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    networks:
+      - crm-net
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          ps -p 1 -o args= | grep -q 'php console/integracao_worker.php' &&
+          php -r '$$f="/var/www/storage/runtime/integration-worker-heartbeat.json"; $$m=is_file($$f)?filemtime($$f):false; exit($$m!==false && (time()-$$m)<=120 ? 0 : 1);'
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    mem_limit: 192m
+    restart: unless-stopped
+
+  cdc-worker:
+    image: crm-dev-php:latest
+    container_name: crm_cdc_worker
+    logging: *default-logging
+    env_file:
+      - ./.env.local
+    working_dir: /var/www/html
+    command: ["php", "console/cdc_worker.php"]
+    volumes:
+      - ./app:/var/www/html
+      - ./storage:/var/www/storage
+      - ./.env.local:/var/www/html/.env.local:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      debezium:
+        condition: service_healthy
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "ps -p 1 -o args= | grep -q 'php console/cdc_worker.php' || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    mem_limit: 256m
+    restart: unless-stopped
+
+  cdc-retry-worker:
+    image: crm-dev-php:latest
+    container_name: crm_cdc_retry_worker
+    logging: *default-logging
+    env_file:
+      - ./.env.local
+    working_dir: /var/www/html
+    command: ["php", "console/cdc_retry_worker.php"]
+    volumes:
+      - ./app:/var/www/html
+      - ./storage:/var/www/storage
+      - ./.env.local:/var/www/html/.env.local:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+      redis-queue:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "ps -p 1 -o args= | grep -q 'php console/cdc_retry_worker.php' || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    mem_limit: 192m
+    restart: unless-stopped
+
+  apache:
+    image: httpd:2.4-alpine
+    container_name: crm_apache
+    logging: *default-logging
+    depends_on:
+      php:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+      - "${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"
+    volumes:
+      - ./app:/var/www/html:ro
+      - ./storage:/var/www/storage:ro
+      - ./docker/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf:ro
+      - ./docker/apache/works-auth.sh:/usr/local/apache2/conf/works-auth.sh:ro
+    networks:
+      - crm-net
+    mem_limit: 128m
+    restart: unless-stopped
+
+  # ---------------- HOMOLOGACAO (2026-10-06) ----------------
+  # So sobe com: scripts/homologacao.sh subir  (profile "homolog").
+  # Codigo de uma copia separada (git worktree, branch homolog) e banco
+  # crm_homolog; credores/SMTP/SFTP SEM credenciais (nada sai pra fora).
+  # Sem depends_on de proposito: subir a homologacao nunca mexe na producao.
+  php-homolog:
+    image: crm-dev-php:latest
+    container_name: crm_php_homolog
+    profiles: ["homolog"]
+    logging: *default-logging
+    env_file:
+      - path: ${CRM_HOMOLOG_DIR:-/home/works/crm-homolog}/.env.homolog
+        required: false
+    working_dir: /var/www/html
+    volumes:
+      - ${CRM_HOMOLOG_DIR:-/home/works/crm-homolog}/app:/var/www/html
+      - ${CRM_HOMOLOG_DIR:-/home/works/crm-homolog}/storage:/var/www/storage
+      - ${CRM_HOMOLOG_DIR:-/home/works/crm-homolog}/.env.homolog:/var/www/html/.env.local:ro
+      - ./docker/php/homolog.ini:/usr/local/etc/php/conf.d/zz-homolog.ini:ro
+    networks:
+      - crm-net
+    mem_limit: 256m
+    restart: unless-stopped
+
+  apache-homolog:
+    image: httpd:2.4-alpine
+    container_name: crm_apache_homolog
+    profiles: ["homolog"]
+    logging: *default-logging
+    ports:
+      - "8081:80"
+    volumes:
+      - ${CRM_HOMOLOG_DIR:-/home/works/crm-homolog}/app:/var/www/html:ro
+      - ${CRM_HOMOLOG_DIR:-/home/works/crm-homolog}/storage:/var/www/storage:ro
+      - ${CRM_HOMOLOG_DIR:-/home/works/crm-homolog}/httpd-homolog.conf:/usr/local/apache2/conf/httpd.conf:ro
+    networks:
+      - crm-net
+    mem_limit: 64m
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:${MYSQL_VERSION:-8.4}
+    container_name: crm_mysql
+    logging: *default-logging
+    env_file:
+      - ./.env.local
+    environment:
+      # Ajuste de memoria (2026-10-06): limita as arenas do malloc da glibc.
+      # A fragmentacao fazia o mysqld crescer sem parar (3,5GB em 17 dias num
+      # limite de 2GB). So vale ao recriar o container: scripts/aplicar-ajuste-memoria-mysql.sh
+      MALLOC_ARENA_MAX: "2"
+    command:
+      - --defaults-file=/etc/mysql/my.cnf
+      # Mantidos tambem na linha de comando, na ordem exigida pelo MySQL.
+      # Isso impede que o CDC suba com GTID desligado caso uma versao antiga
+      # do arquivo de configuracao ainda esteja montada no container.
+      - --enforce-gtid-consistency=ON
+      - --gtid-mode=ON
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/conf.d/my.cnf:/etc/mysql/my.cnf:ro
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+    mem_limit: 2048m
+    restart: unless-stopped
+
+  redis-cache:
+    image: redis:${REDIS_VERSION:-8.4-alpine}
+    container_name: crm_redis_cache
+    logging: *default-logging
+    environment:
+      REDIS_CACHE_PASSWORD: "${REDIS_CACHE_PASSWORD:-redis_cache_dev_secret}"
+    command:
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+      - --requirepass
+      - "${REDIS_CACHE_PASSWORD:-redis_cache_dev_secret}"
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_cache_data:/data
+      - ./docker/redis/redis-cache.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - crm-net
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$${REDIS_CACHE_PASSWORD}" ping | grep PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    mem_limit: 192m
+    restart: unless-stopped
+
+  redis-queue:
+    image: redis:${REDIS_VERSION:-8.4-alpine}
+    container_name: crm_redis_queue
+    logging: *default-logging
+    environment:
+      REDIS_QUEUE_PASSWORD: "${REDIS_QUEUE_PASSWORD:-redis_queue_dev_secret}"
+    command:
+      - redis-server
+      - /usr/local/etc/redis/redis.conf
+      - --requirepass
+      - "${REDIS_QUEUE_PASSWORD:-redis_queue_dev_secret}"
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - redis_queue_data:/data
+      - ./docker/redis/redis-queue.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - crm-net
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$${REDIS_QUEUE_PASSWORD}" ping | grep PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    mem_limit: 256m
+    restart: unless-stopped
+
+  opensearch:
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION:-3.7.0}
+    container_name: crm_opensearch
+    logging: *default-logging
+    environment:
+      discovery.type: single-node
+      cluster.name: crm-opensearch-dev
+      node.name: crm-opensearch-01
+      bootstrap.memory_lock: "false"
+      DISABLE_SECURITY_PLUGIN: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      node.store.allow_mmap: "false"
+      OPENSEARCH_JAVA_OPTS: "${OPENSEARCH_JAVA_OPTS:--Xms768m -Xmx768m}"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: "${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-OpenSearchDev123!}"
+    ports:
+      - "127.0.0.1:${OPENSEARCH_PORT:-9200}:9200"
+      - "127.0.0.1:9600:9600"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+      - ./docker/opensearch/opensearch.yml:/usr/share/opensearch/config/opensearch.yml:ro
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:9200/_cluster/health >/dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 60
+      start_period: 180s
+    mem_limit: 2048m
+    restart: unless-stopped
+
+  opensearch-dashboards:
+    image: crm-dev-opensearch-dashboards:latest
+    build:
+      context: ./docker/opensearch-dashboards
+      dockerfile: Dockerfile
+      args:
+        OPENSEARCH_VERSION: ${OPENSEARCH_VERSION:-3.7.0}
+    container_name: crm_opensearch_dashboards
+    logging: *default-logging
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+    volumes:
+      - ./docker/opensearch-dashboards/opensearch_dashboards.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml:ro
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/share/opensearch-dashboards/node/bin/node -e \"require('http').get('http://127.0.0.1:5601/api/status',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))\""]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 60s
+    mem_limit: 512m
+    restart: unless-stopped
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:${CLICKHOUSE_VERSION:-26.3}
+    container_name: crm_clickhouse
+    logging: *default-logging
+    environment:
+      CLICKHOUSE_DB: "${CLICKHOUSE_DB:-crm_analytics_dev}"
+      CLICKHOUSE_USER: "${CLICKHOUSE_USER:-crm_app}"
+      CLICKHOUSE_PASSWORD: "${CLICKHOUSE_PASSWORD:-clickhouse_dev_secret}"
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    ports:
+      - "127.0.0.1:${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "127.0.0.1:${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+      - ./docker/clickhouse/config.d/dev.xml:/etc/clickhouse-server/config.d/dev.xml:ro
+    networks:
+      - crm-net
+    healthcheck:
+      test: ['CMD-SHELL', 'clickhouse-client --user "$${CLICKHOUSE_USER:-crm_app}" --password "$${CLICKHOUSE_PASSWORD:-clickhouse_dev_secret}" --query "SELECT 1" >/dev/null']
+      interval: 20s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+    mem_limit: 768m
+    restart: unless-stopped
+
+  redpanda:
+    image: redpandadata/redpanda:${REDPANDA_VERSION:-v26.1.10}
+    container_name: crm_redpanda
+    logging: *default-logging
+    command:
+      - redpanda
+      - start
+      - --mode
+      - dev-container
+      - --smp
+      - "1"
+      - --memory
+      - 512M
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+      - --schema-registry-addr
+      - internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --pandaproxy-addr
+      - internal://0.0.0.0:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr
+      - internal://redpanda:8082,external://localhost:18082
+    ports:
+      - "127.0.0.1:${REDPANDA_KAFKA_PORT:-19092}:19092"
+      - "127.0.0.1:${REDPANDA_SCHEMA_REGISTRY_PORT:-18081}:18081"
+      - "127.0.0.1:${REDPANDA_PANDAPROXY_PORT:-18082}:18082"
+      - "127.0.0.1:${REDPANDA_ADMIN_PORT:-9644}:9644"
+    volumes:
+      - redpanda_data:/var/lib/redpanda/data
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster info --brokers=redpanda:9092 >/dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 40s
+    mem_limit: 768m
+    restart: unless-stopped
+
+  debezium:
+    image: quay.io/debezium/connect:${DEBEZIUM_VERSION:-3.5.2.Final}
+    container_name: crm_debezium
+    logging: *default-logging
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redpanda:
+        condition: service_healthy
+    environment:
+      BOOTSTRAP_SERVERS: redpanda:9092
+      GROUP_ID: "${DEBEZIUM_GROUP_ID:-crm-debezium-dev}"
+      CONFIG_STORAGE_TOPIC: crm_connect_configs
+      OFFSET_STORAGE_TOPIC: crm_connect_offsets
+      STATUS_STORAGE_TOPIC: crm_connect_statuses
+      CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      # A imagem usa -Xmx2G por padrao. Limite do container e' 1536 MB (era 768MB/-Xmx512M
+      # ate 2026-09-17: connector caia com EOFException lendo o binlog depois de lotes
+      # grandes de escrita - hipotese de OOM/pressao de GC, container ficava em ~98% do
+      # limite antigo mesmo sem rajada. Ver docs/RUNBOOK_SUPORTE.md, seção 5.
+      KAFKA_HEAP_OPTS: "-Xms256M -Xmx1024M"
+      # Nao sobrescrever CONNECT_PLUGIN_PATH. A imagem oficial usa /kafka/connect
+      # e descobre automaticamente os conectores em suas subpastas.
+    ports:
+      - "127.0.0.1:${DEBEZIUM_PORT:-8083}:8083"
+    volumes:
+      - ./docker/debezium:/debezium/config:ro
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://127.0.0.1:8083/connector-plugins | grep -Fq 'io.debezium.connector.mysql.MySqlConnector' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
+    mem_limit: 1536m
+    restart: unless-stopped
+
+  debezium-register:
+    image: curlimages/curl:8.11.1
+    container_name: crm_debezium_register
+    logging: *default-logging
+    depends_on:
+      debezium:
+        condition: service_healthy
+    environment:
+      MYSQL_DEBEZIUM_USER: "${MYSQL_DEBEZIUM_USER:-debezium}"
+      MYSQL_DEBEZIUM_PASSWORD: "${MYSQL_DEBEZIUM_PASSWORD:-debezium_dev_secret}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-crm_dev}"
+      DEBEZIUM_TOPIC_PREFIX: "${DEBEZIUM_TOPIC_PREFIX:-crm.mysql}"
+      DEBEZIUM_TABLE_INCLUDE_LIST: "${DEBEZIUM_TABLE_INCLUDE_LIST:-pessoas,pessoa_contatos,pessoa_enderecos,contratos,contrato_parcelas,atendimentos_historico,atendimento_resultados,campanhas,campanha_itens,estrategias,estrategia_contratos,acordos_operacionais,acordos_operacionais_parcelas,acordos_operacionais_acompanhamento,acordo_regras_carencia,usuarios,pagamentos,boletos,baixas,cargas_arquivos}"
+    volumes:
+      - ./docker/debezium:/debezium/config:ro
+    command: ["sh", "/debezium/config/register-connector.sh"]
+    networks:
+      - crm-net
+    mem_limit: 64m
+    restart: "no"
+
+  # Simulador da API do credor ACME (fictício) - permite rodar o fluxo de
+  # negociação, acordo, boleto e acionamentos sem nenhum sistema externo.
+  # Contrato em docs/CREDOR_API.md; credenciais em SIMULADOR_USUARIO/SENHA.
+  credor-simulado:
+    image: php:8.4-cli-alpine
+    container_name: crm_credor_simulado
+    logging: *default-logging
+    working_dir: /simulador
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "public", "public/index.php"]
+    environment:
+      SIMULADOR_USUARIO: "${ACME_API_USERNAME:-demo}"
+      SIMULADOR_SENHA: "${ACME_API_PASSWORD:-demo}"
+      SIMULADOR_ESTADO: /data/estado.json
+    volumes:
+      - ./docker/credor-simulado:/simulador:ro
+      - credor_simulado_data:/data
+    ports:
+      - "127.0.0.1:${CREDOR_SIMULADO_PORT:-8090}:8080"
+    networks:
+      - crm-net
+    healthcheck:
+      test: ["CMD-SHELL", "php -r 'exit(@file_get_contents(\"http://127.0.0.1:8080/health\") ? 0 : 1);'"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    mem_limit: 64m
+    restart: unless-stopped
+
+networks:
+  crm-net:
+    name: crm_dev_net
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_cache_data:
+  redis_queue_data:
+  opensearch_data:
+  clickhouse_data:
+  clickhouse_logs:
+  redpanda_data:
+  credor_simulado_data:

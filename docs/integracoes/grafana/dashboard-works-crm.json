@@ -1,0 +1,1320 @@
+{
+ "__inputs": [
+  {
+   "name": "DS_PROMETHEUS",
+   "label": "Prometheus",
+   "type": "datasource",
+   "pluginId": "prometheus",
+   "pluginName": "Prometheus"
+  }
+ ],
+ "title": "Pactua CRM - Saúde e operação",
+ "uid": "works-crm-saude",
+ "tags": [
+  "crm",
+  "works"
+ ],
+ "timezone": "browser",
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "1m",
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "row",
+   "title": "Saúde do CRM",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "id": 2,
+   "type": "stat",
+   "title": "CRM respondendo (scrape)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "up{job=\"crm\"}",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "PARADO",
+         "color": "red"
+        },
+        "1": {
+         "text": "OK",
+         "color": "green"
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 3,
+   "type": "stat",
+   "title": "CDC (Debezium)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 4,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_debezium_task_rodando * crm_debezium_conector_rodando",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "PARADO",
+         "color": "red"
+        },
+        "1": {
+         "text": "OK",
+         "color": "green"
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 4,
+   "type": "stat",
+   "title": "MySQL",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_mysql_rodando",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "PARADO",
+         "color": "red"
+        },
+        "1": {
+         "text": "OK",
+         "color": "green"
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "green",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 5,
+   "type": "stat",
+   "title": "OpenSearch",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_opensearch_status",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "mappings": [
+      {
+       "type": "value",
+       "options": {
+        "0": {
+         "text": "VERMELHO",
+         "color": "red"
+        },
+        "1": {
+         "text": "AMARELO",
+         "color": "yellow"
+        },
+        "2": {
+         "text": "VERDE",
+         "color": "green"
+        }
+       }
+      }
+     ],
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "red",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 1
+       },
+       {
+        "color": "green",
+        "value": 2
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 6,
+   "type": "stat",
+   "title": "Containers parados",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "count(crm_container_rodando == 0) or vector(0)",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 7,
+   "type": "stat",
+   "title": "Idade da coleta",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 20,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_metricas_idade_segundos",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 300
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 8,
+   "type": "row",
+   "title": "Dados e rotinas",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 5,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "id": 9,
+   "type": "timeseries",
+   "title": "Fila do CDC (mensagens a projetar)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 6,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_cdc_lag_mensagens",
+     "legendFormat": "atraso"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  },
+  {
+   "id": 10,
+   "type": "stat",
+   "title": "Diferença MySQL x OpenSearch (contratos)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 6,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "sum(crm_mysql_registros{entidade=\"contratos\"}) - sum(crm_opensearch_documentos{indice=\"crm_contratos_v1\"})",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 101
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 11,
+   "type": "stat",
+   "title": "Última carga ACME aplicada",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 6,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "time() - crm_carga_ultima_aplicada_timestamp_segundos",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 108000
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 12,
+   "type": "stat",
+   "title": "Último backup",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 10,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "time() - crm_backup_ultimo_timestamp_segundos",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 93600
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 13,
+   "type": "stat",
+   "title": "Último envio à ACME",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 10,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "time() - max(crm_integracao_ultimo_envio_timestamp_segundos)",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 14,
+   "type": "row",
+   "title": "Recursos da VM",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 14,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "id": 15,
+   "type": "timeseries",
+   "title": "MySQL: memória e swap",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 15,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_mysql_memoria_rss_bytes",
+     "legendFormat": "RAM"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_mysql_swap_bytes",
+     "legendFormat": "swap"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "bytes"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  },
+  {
+   "id": 16,
+   "type": "timeseries",
+   "title": "VM: disco, swap e memória livre",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 15,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_host_swap_usado_bytes",
+     "legendFormat": "swap usado"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_host_memoria_disponivel_bytes",
+     "legendFormat": "memória disponível"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     },
+     "unit": "bytes"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  },
+  {
+   "id": 17,
+   "type": "stat",
+   "title": "Disco /",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 23,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_host_disco_uso_percentual",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 75
+       },
+       {
+        "color": "red",
+        "value": 85
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 18,
+   "type": "stat",
+   "title": "Load (1 min)",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 23,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_host_load1",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 19,
+   "type": "stat",
+   "title": "Conexões MySQL",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 23,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_mysql_conexoes",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 20,
+   "type": "stat",
+   "title": "Reinícios de containers",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 23,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "sum(crm_container_reinicios)",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 21,
+   "type": "row",
+   "title": "Operação e integração com o credor",
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 27,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "id": 22,
+   "type": "stat",
+   "title": "Acionamentos hoje",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 28,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_acionamentos_hoje",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 23,
+   "type": "stat",
+   "title": "Acordos criados hoje",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 6,
+    "y": 28,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_acordos_criados_hoje",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 24,
+   "type": "stat",
+   "title": "Fila pro credor pendente/retry",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 28,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "sum(crm_integracao_eventos{status=~\"pendente|erro_retry\"}) or vector(0)",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "yellow",
+        "value": 5
+       },
+       {
+        "color": "red",
+        "value": 20
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 25,
+   "type": "stat",
+   "title": "Erros definitivos pro credor",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 18,
+    "y": 28,
+    "w": 6,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "sum(crm_integracao_eventos{status=\"erro_definitivo\"}) or vector(0)",
+     "legendFormat": "",
+     "instant": true
+    }
+   ],
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ]
+    },
+    "colorMode": "background",
+    "graphMode": "none",
+    "textMode": "auto"
+   },
+   "fieldConfig": {
+    "defaults": {
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "green",
+        "value": null
+       },
+       {
+        "color": "red",
+        "value": 1
+       }
+      ]
+     }
+    },
+    "overrides": []
+   }
+  },
+  {
+   "id": 26,
+   "type": "timeseries",
+   "title": "Eventos pro credor por integração/status",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "${DS_PROMETHEUS}"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 32,
+    "w": 24,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "${DS_PROMETHEUS}"
+     },
+     "expr": "crm_integracao_eventos",
+     "legendFormat": "{{integracao}} {{status}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 10
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom"
+    }
+   }
+  }
+ ],
+ "templating": {
+  "list": []
+ },
+ "annotations": {
+  "list": []
+ }
+}

@@ -1,0 +1,3 @@
+# A cada 5 min: alerta por e-mail se o Debezium/containers do CRM cairem
+# (2 verificacoes seguidas; repete a cada 6h; avisa quando normaliza). 2026-09-18.
+*/5 * * * * root /opt/crm-dev-docker/scripts/verificar-saude-cdc.sh >> /var/log/verificar-saude-cdc.log 2>&1

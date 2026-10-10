@@ -1,0 +1,8 @@
+cluster.name: crm-opensearch-dev
+node.name: crm-opensearch-01
+network.host: 0.0.0.0
+discovery.type: single-node
+bootstrap.memory_lock: false
+path.data: /usr/share/opensearch/data
+http.port: 9200
+transport.port: 9300

@@ -1,0 +1,4 @@
+# Backup diario do MySQL as 03:30 (dump compactado em /opt/crm-dev-docker/backups/mysql,
+# mantem os 5 mais recentes; exclui so o CONTEUDO de stg_carga_canonica e
+# cargas_linhas_raw). Falha dispara alerta por e-mail. Instalado 2026-09-18.
+30 3 * * * root /opt/crm-dev-docker/scripts/backup-mysql.sh >> /var/log/backup-mysql.log 2>&1

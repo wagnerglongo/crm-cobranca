@@ -1,0 +1,63 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci-pass
+        ports: ["3306:3306"]
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci-pass --silent"
+          --health-interval=5s --health-timeout=5s --health-retries=30
+      redis:
+        image: redis:8.4-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd="redis-cli ping" --health-interval=5s
+          --health-timeout=3s --health-retries=20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "3306"
+      DB_DATABASE: crm_test  # mesmo nome que o app/phpunit.xml forca
+      DB_USERNAME: root
+      DB_PASSWORD: ci-pass
+      REDIS_CACHE_HOST: 127.0.0.1
+      REDIS_QUEUE_HOST: 127.0.0.1
+      STORAGE_CARGAS_PATH: ${{ github.workspace }}/storage/cargas
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: pdo_mysql, redis, mbstring, intl, bcmath, sockets, zip, sodium
+          # Mesmo fuso do docker/php/php.ini; sem isso o PHP (UTC) e o MySQL
+          # da sessao (-03:00) divergem 3h e quebram testes de expiracao.
+          ini-values: date.timezone=America/Sao_Paulo
+          tools: composer:v2
+
+      - name: Dependencias PHP
+        working-directory: app
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Schema do banco (mesma ordem do scripts/migrate.sh)
+        run: bash scripts/ci/prepare-db.sh
+
+      - name: PHPUnit
+        working-directory: app
+        run: |
+          export ROTINAS_CARGA_CHAVE_CRIPTO="$(php -r 'echo base64_encode(sodium_crypto_secretbox_keygen());')"
+          mkdir -p "$STORAGE_CARGAS_PATH"
+          vendor/bin/phpunit --do-not-cache-result

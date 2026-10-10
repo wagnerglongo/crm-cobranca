@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 236 64" role="img" aria-label="Pactua CRM de cobrança">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e40af"/><stop offset="1" stop-color="#0284c7"/></linearGradient></defs>
+  <rect width="64" height="64" rx="14" fill="url(#g)"/>
+  <path d="M21 48V16h13.5c7 0 11.5 4.3 11.5 10.6S41.5 37.2 34.5 37.2H28V48z M28 30.8h6c3 0 4.9-1.6 4.9-4.2s-1.9-4.2-4.9-4.2h-6z" fill="#fff"/>
+  <circle cx="46" cy="45" r="5" fill="#34d399"/>
+  <text x="78" y="37" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="#ffffff">Pactua</text>
+  <text x="79" y="55" font-family="Inter, 'Segoe UI', Arial, sans-serif" font-size="11" font-weight="600" letter-spacing="1.6" fill="#93c5fd">CRM DE COBRANÇA</text>
+</svg>
